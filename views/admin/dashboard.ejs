@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('../partials/head', { title: 'Panel — Admin' }) %>
+</head>
+<body>
+  <main class="admin-body admin-dashboard">
+    <%- include('../partials/admin-nav', { active: 'dashboard', admin }) %>
+
+    <section class="dashboard-hero">
+      <div>
+        <span class="admin-eyebrow">Centro de control</span>
+        <h2>Todo listo para la próxima partida.</h2>
+        <p>Gestioná el contenido, revisá la actividad y mantené la temporada en movimiento.</p>
+      </div>
+      <div class="season-status">
+        <span class="status-pulse"></span>
+        <div><small>Temporada activa</small><strong><%= season.name %></strong><em><%= season.type %></em></div>
+      </div>
+    </section>
+
+    <section class="stat-grid dashboard-stats">
+      <div class="stat-card">
+        <span class="stat-icon">◎</span>
+        <div class="num"><%= totalPlayers %></div>
+        <div class="label">Jugadores registrados</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">☷</span>
+        <div class="num"><%= totalQuestions %></div>
+        <div class="label">Preguntas activas</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">↗</span>
+        <div class="num"><%= totalAnswers %></div>
+        <div class="label">Respuestas esta temporada</div>
+      </div>
+      <% if (draftQuestions > 0) { %>
+        <div class="stat-card stat-card-alert">
+          <span class="stat-icon">!</span>
+          <div class="num"><%= draftQuestions %></div>
+          <div class="label">Preguntas de IA pendientes de revisar</div>
+        </div>
+      <% } %>
+    </section>
+
+    <section class="dashboard-actions">
+      <div class="section-heading"><div><span class="admin-eyebrow">Acciones rápidas</span><h3>¿Qué querés hacer?</h3></div></div>
+      <div class="quick-actions">
+        <a href="/admin/questions/new" class="quick-action quick-action-primary"><span>+</span><strong>Nueva pregunta</strong><small>Sumá contenido al banco</small></a>
+        <a href="/admin/questions/generate-ai" class="quick-action"><span>✦</span><strong>Generar con IA</strong><small>Creá borradores para revisar</small></a>
+        <a href="/admin/questions" class="quick-action"><span>☷</span><strong>Revisar preguntas</strong><small>Activá o editá contenido</small></a>
+        <a href="/admin/seasons" class="quick-action"><span>◷</span><strong>Gestionar temporada</strong><small>Avanzá la próxima tanda</small></a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

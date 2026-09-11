@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('partials/head', { title: 'preguntas.faciles — Ranking' }) %>
+</head>
+<body class="ranking-page">
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">
+        <img src="/img/logo.png" alt="preguntas.faciles" class="mark">
+        Ranking
+      </div>
+    </div>
+
+    <p style="color: var(--gray); font-size: 13px; margin-top: -12px; margin-bottom: 20px;">
+      <%= season.name %> · se reinicia cada <%= season.type %>
+    </p>
+
+    <% if (previousSeason && previousWinner) { %>
+      <section class="previous-winner" aria-label="Ganador de la temporada anterior">
+        <span class="stats-kicker">Ganador de la temporada anterior</span>
+        <div class="previous-winner-player">
+          <span class="avatar avatar-ranking">
+            <% if (previousWinner.avatar_data) { %>
+              <img src="<%= previousWinner.avatar_data %>" alt="">
+            <% } else { %>
+              <%= previousWinner.nickname.charAt(0).toUpperCase() %>
+            <% } %>
+          </span>
+          <strong><%= previousWinner.nickname %></strong>
+          <span class="previous-winner-points"><%= previousWinner.points %> pts</span>
+        </div>
+        <span class="previous-winner-season"><%= previousSeason.name %></span>
+      </section>
+    <% } %>
+
+    <% if (!ranking.length) { %>
+      <div class="done-card">Todavía nadie sumó puntos esta temporada. ¡Sé el primero!</div>
+    <% } else { %>
+      <div class="ranking-list">
+        <% ranking.forEach((row, i) => { %>
+          <div class="ranking-row">
+            <span class="avatar avatar-ranking">
+              <% if (row.avatar_data) { %>
+                <img src="<%= row.avatar_data %>" alt="">
+              <% } else { %>
+                <%= row.nickname.charAt(0).toUpperCase() %>
+              <% } %>
+            </span>
+            <span class="pos">#<%= i + 1 %></span>
+            <span class="nick"><%= row.nickname %><% if (player && player.nickname === row.nickname) { %> (vos)<% } %></span>
+            <span class="avg-time"><%= row.avg_response_time_ms != null ? (row.avg_response_time_ms / 1000).toFixed(1) + 's prom.' : '—' %></span>
+            <span class="pts"><%= row.points %> pts</span>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+
+    <div class="ad-slot">Espacio publicitario</div>
+  </div>
+
+  <%- include('partials/bottom-nav', { active: 'ranking' }) %>
+</body>
+</html>

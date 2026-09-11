@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('../partials/head', { title: 'Estadísticas — Admin' }) %>
+</head>
+<body>
+  <main class="admin-body admin-stats-page">
+    <%- include('../partials/admin-nav', { active: 'stats', admin }) %>
+
+    <section class="stats-heading">
+      <div><span class="admin-eyebrow">Rendimiento</span><h2>Estadísticas</h2><p>Comparativa general vs. <strong><%= season.name %></strong>.</p></div>
+      <div class="stats-season-pill"><span class="status-pulse"></span><%= season.type %></div>
+    </section>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="num"><%= totalPlayers %></div>
+        <div class="label">Jugadores totales</div>
+      </div>
+      <div class="stat-card">
+        <div class="num"><%= activePlayers %></div>
+        <div class="label">Jugadores activos esta temporada</div>
+      </div>
+      <div class="stat-card">
+        <div class="num"><%= globalStats.totalSeasons %></div>
+        <div class="label">Temporadas con actividad</div>
+      </div>
+    </div>
+
+    <section class="stats-chart-section">
+      <div class="section-heading">
+        <div><span class="admin-eyebrow">Distribución</span><h3>Respuestas globales vs. temporada</h3></div>
+      </div>
+
+      <div class="stats-charts-grid">
+        <article class="stats-chart-card">
+          <header class="stats-chart-head">
+            <span class="admin-eyebrow">Histórico</span>
+            <h4>Todas las temporadas</h4>
+            <small><%= globalStats.totalAnswers %> respuestas registradas</small>
+          </header>
+
+          <% if (globalStats.totalAnswers > 0) { %>
+            <div class="donut" role="img" aria-label="<%= globalStats.correctPct.toFixed(1) %>% aciertos, <%= globalStats.wrongPct.toFixed(1) %>% fallos, <%= globalStats.timeoutPct.toFixed(1) %>% tiempo agotado" style="--correct: <%= globalStats.correctPct %>; --wrong: <%= globalStats.correctPct + globalStats.wrongPct %>;">
+              <div class="donut-center">
+                <strong><%= globalStats.totalAnswers %></strong>
+                <span>respuestas</span>
+              </div>
+            </div>
+            <ul class="stats-legend">
+              <li>
+                <span class="legend-dot legend-correct"></span>
+                <span class="legend-label">Acertadas</span>
+                <strong><%= globalStats.correctPct.toFixed(1) %>%</strong>
+                <small><%= globalStats.correct %> respuestas</small>
+              </li>
+              <li>
+                <span class="legend-dot legend-wrong"></span>
+                <span class="legend-label">Fallidas</span>
+                <strong><%= globalStats.wrongPct.toFixed(1) %>%</strong>
+                <small><%= globalStats.wrong %> respuestas</small>
+              </li>
+              <li>
+                <span class="legend-dot legend-timeout"></span>
+                <span class="legend-label">Tiempo agotado</span>
+                <strong><%= globalStats.timeoutPct.toFixed(1) %>%</strong>
+                <small><%= globalStats.timeout %> respuestas</small>
+              </li>
+            </ul>
+          <% } else { %>
+            <div class="empty-state">Sin respuestas históricas todavía.</div>
+          <% } %>
+        </article>
+
+        <article class="stats-chart-card">
+          <header class="stats-chart-head">
+            <span class="admin-eyebrow">Actual</span>
+            <h4><%= season.name %></h4>
+            <small><%= seasonStats.totalAnswers %> respuestas esta temporada</small>
+          </header>
+
+          <% if (seasonStats.totalAnswers > 0) { %>
+            <div class="donut" role="img" aria-label="<%= seasonStats.correctPct.toFixed(1) %>% aciertos, <%= seasonStats.wrongPct.toFixed(1) %>% fallos, <%= seasonStats.timeoutPct.toFixed(1) %>% tiempo agotado" style="--correct: <%= seasonStats.correctPct %>; --wrong: <%= seasonStats.correctPct + seasonStats.wrongPct %>;">
+              <div class="donut-center">
+                <strong><%= seasonStats.totalAnswers %></strong>
+                <span>respuestas</span>
+              </div>
+            </div>
+            <ul class="stats-legend">
+              <li>
+                <span class="legend-dot legend-correct"></span>
+                <span class="legend-label">Acertadas</span>
+                <strong><%= seasonStats.correctPct.toFixed(1) %>%</strong>
+                <small><%= seasonStats.correct %> respuestas</small>
+              </li>
+              <li>
+                <span class="legend-dot legend-wrong"></span>
+                <span class="legend-label">Fallidas</span>
+                <strong><%= seasonStats.wrongPct.toFixed(1) %>%</strong>
+                <small><%= seasonStats.wrong %> respuestas</small>
+              </li>
+              <li>
+                <span class="legend-dot legend-timeout"></span>
+                <span class="legend-label">Tiempo agotado</span>
+                <strong><%= seasonStats.timeoutPct.toFixed(1) %>%</strong>
+                <small><%= seasonStats.timeout %> respuestas</small>
+              </li>
+            </ul>
+          <% } else { %>
+            <div class="empty-state">Todavía no hay respuestas esta temporada.</div>
+          <% } %>
+        </article>
+      </div>
+    </section>
+
+    <section class="top-questions-section">
+      <div class="section-heading"><div><span class="admin-eyebrow">Contenido</span><h3>Preguntas más respondidas</h3></div></div>
+      <table>
+        <thead><tr><th>Pregunta</th><th>Correctas</th><th>Incorrectas</th><th>Total</th></tr></thead>
+        <tbody>
+          <% topQuestions.forEach(q => { %><tr><td><%= q.question_text %></td><td><%= q.correct %></td><td><%= q.wrong %></td><td><%= q.total %></td></tr><% }) %>
+          <% if (!topQuestions.length) { %><tr><td colspan="4" class="empty-state">Todavía no hay respuestas esta temporada.</td></tr><% } %>
+        </tbody>
+      </table>
+    </section>
+  </main>
+</body>
+</html>

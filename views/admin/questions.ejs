@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('../partials/head', { title: 'Preguntas — Admin' }) %>
+</head>
+<body>
+  <main class="admin-body">
+    <%- include('../partials/admin-nav', { active: 'questions', admin }) %>
+
+    <section class="admin-page-heading">
+      <div>
+        <span class="admin-eyebrow">Banco de contenido</span>
+        <h2>Preguntas</h2>
+        <p>Revisá, editá y publicá las preguntas que aparecen en el juego.</p>
+      </div>
+      <a href="/admin/questions/new" class="btn btn-primary btn-sm admin-heading-action">+ Nueva pregunta</a>
+    </section>
+
+    <section class="admin-toolbar" aria-label="Resumen de preguntas">
+      <div><strong><%= questions.length %></strong><span>Total</span></div>
+      <div><strong><%= questions.filter(q => q.active).length %></strong><span>Activas</span></div>
+      <div><strong><%= questions.filter(q => !q.active).length %></strong><span>Para revisar</span></div>
+    </section>
+
+    <section class="question-bulk-actions" aria-label="Estado global de preguntas">
+      <span>Estado global</span>
+      <form method="POST" action="/admin/questions/set-active" onsubmit="return confirm('¿Activar todas las preguntas? También se publicarán los borradores.');">
+        <input type="hidden" name="active" value="1">
+        <button type="submit" class="bulk-action bulk-action-on">Activar todas</button>
+      </form>
+      <form method="POST" action="/admin/questions/set-active" onsubmit="return confirm('¿Desactivar todas las preguntas? Ninguna aparecerá en el juego.');">
+        <input type="hidden" name="active" value="0">
+        <button type="submit" class="bulk-action bulk-action-off">Desactivar todas</button>
+      </form>
+    </section>
+
+    <div class="admin-table-wrap">
+      <table class="questions-table">
+        <thead>
+          <tr>
+            <th>Pregunta</th>
+            <th>Categoría</th>
+            <th>Dificultad</th>
+            <th>Estado</th>
+            <th class="actions-column">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% questions.forEach(q => { %>
+            <tr>
+              <td class="question-cell" data-label="Pregunta">
+                <strong><%= q.question_text %></strong>
+                <small><%= q.points_value %> puntos · #<%= q.id %></small>
+              </td>
+              <td data-label="Categoría"><%= q.category_name || 'Sin categoría' %></td>
+              <td data-label="Dificultad"><span class="difficulty difficulty-<%= q.difficulty %>"><%= q.difficulty %></span></td>
+              <td data-label="Estado"><span class="tag <%= q.active ? 'on' : '' %>"><%= q.active ? 'Activa' : 'Borrador' %></span></td>
+              <td class="row-actions actions-column" data-label="Acciones">
+                <a href="/admin/questions/<%= q.id %>/edit" class="table-action">Editar</a>
+                <form method="POST" action="/admin/questions/<%= q.id %>/toggle">
+                  <button type="submit" class="table-action"><%= q.active ? 'Pausar' : 'Publicar' %></button>
+                </form>
+                <form method="POST" action="/admin/questions/<%= q.id %>/delete" onsubmit="return confirm('¿Eliminar esta pregunta?');">
+                  <button type="submit" class="table-action table-action-danger">Eliminar</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+          <% if (!questions.length) { %>
+            <tr><td colspan="5" class="empty-state">Todavía no hay preguntas. Creá la primera para empezar.</td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('../partials/head', { title: 'Temporadas — Admin' }) %>
+</head>
+<body>
+  <div class="admin-body">
+    <%- include('../partials/admin-nav', { active: 'seasons', admin }) %>
+
+    <h2 style="font-family: var(--font-display); margin-top:0;">Iniciar nueva temporada</h2>
+    <p style="color: var(--gray); font-size: 13px; max-width: 480px;">
+      Esto cierra la temporada activa y reinicia el ranking desde cero. El historial de la temporada anterior queda guardado.
+    </p>
+
+    <h3 style="font-family: var(--font-display); font-size: 15px; margin: 0 0 6px;">Opción rápida</h3>
+    <p style="color: var(--gray); font-size: 13px; max-width: 480px; margin: 0 0 12px;">
+      Abre la próxima temporada con el mismo tipo y duración que la actual (<%= activeSeason && activeSeason.type === 'mensual' ? 'mensual' : 'semanal' %>).
+    </p>
+    <form method="POST" action="/admin/seasons/advance-current" style="margin: 0 0 32px;" onsubmit="return confirm('¿Abrir la próxima temporada? Se reiniciará el ranking actual.');">
+      <button type="submit" class="btn btn-primary" style="width:auto;">Abrir próxima temporada</button>
+    </form>
+
+    <% if (advanced) { %>
+      <p class="success-msg" style="margin: -18px 0 22px;">Nueva temporada habilitada. Ya se puede jugar.</p>
+    <% } %>
+
+    <h3 style="font-family: var(--font-display); font-size: 15px; margin: 0 0 6px;">Temporada personalizada</h3>
+    <p style="color: var(--gray); font-size: 13px; max-width: 480px; margin: 0 0 12px;">
+      Usá esto para algo distinto a lo habitual: un evento especial, cambiar de semanal a mensual, o ponerle un nombre puntual.
+    </p>
+    <form method="POST" action="/admin/seasons/new" class="form-grid" style="margin-bottom: 36px;" onsubmit="return confirm('¿Seguro que querés reiniciar el ranking?');">
+      <div>
+        <label>Nombre</label>
+        <input type="text" name="name" placeholder="Ej: Semana 3 - Septiembre" required>
+      </div>
+      <div>
+        <label>Tipo</label>
+        <select name="type">
+          <option value="semanal">Semanal</option>
+          <option value="mensual">Mensual</option>
+          <option value="especial">Especial</option>
+        </select>
+      </div>
+      <div>
+        <label>Duración (días)</label>
+        <input type="number" name="days" value="7" min="1">
+      </div>
+      <div class="full">
+        <button type="submit" class="btn btn-secondary" style="width:auto;">Reiniciar ranking</button>
+      </div>
+    </form>
+
+    <h2 style="font-family: var(--font-display);">Historial</h2>
+    <table>
+      <thead>
+        <tr><th>Nombre</th><th>Tipo</th><th>Inicio</th><th>Fin</th><th>Estado</th></tr>
+      </thead>
+      <tbody>
+        <% seasons.forEach(s => { %>
+          <tr>
+            <td><%= s.name %></td>
+            <td><%= s.type %></td>
+            <td><%= new Date(s.starts_at).toLocaleDateString('es-AR') %></td>
+            <td><%= new Date(s.ends_at).toLocaleDateString('es-AR') %></td>
+            <td><span class="tag <%= s.is_active ? 'on' : '' %>"><%= s.is_active ? 'Activa' : 'Cerrada' %></span></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

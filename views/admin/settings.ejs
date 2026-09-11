@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('../partials/head', { title: 'Configuración — Admin' }) %>
+</head>
+<body>
+  <div class="admin-body">
+    <%- include('../partials/admin-nav', { active: 'settings', admin }) %>
+
+    <h2 style="font-family: var(--font-display); margin-top:0;">Configuración del juego</h2>
+    <p style="color: var(--gray); max-width: 520px;">
+      Ajustá el tiempo disponible para responder cada pregunta.
+    </p>
+
+    <% if (saved) { %>
+      <p class="success-msg">Configuración guardada.</p>
+    <% } %>
+
+    <form method="POST" action="/admin/settings" class="form-grid" style="max-width: 520px;">
+      <div class="full">
+        <label for="questionTimeSeconds">Tiempo por pregunta (segundos)</label>
+        <input id="questionTimeSeconds" type="number" name="question_time_seconds" value="<%= questionTimeSeconds %>" min="3" max="60" required>
+        <small class="field-help">Podés elegir entre 3 y 60 segundos.</small>
+      </div>
+      <div class="full">
+        <button type="submit" class="btn btn-primary" style="width:auto;">Guardar configuración</button>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

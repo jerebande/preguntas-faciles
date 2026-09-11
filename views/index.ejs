@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('partials/head', { title: 'preguntas.faciles — Jugá' }) %>
+</head>
+<body class="home-page">
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">
+        <img src="/img/logo.png" alt="preguntas.faciles" class="mark">
+        preguntas.faciles
+      </div>
+      <div class="player-chip" id="playerChip">
+        <% if (player) { %>
+          <button type="button" class="avatar-trigger" id="avatarTrigger" aria-label="Cambiar foto de perfil" title="Cambiar foto de perfil">
+            <span class="avatar avatar-small" id="playerAvatar">
+              <% if (player.avatar_data) { %>
+                <img src="<%= player.avatar_data %>" alt="">
+              <% } else { %>
+                <%= player.nickname.charAt(0).toUpperCase() %>
+              <% } %>
+            </span>
+          </button>
+          <strong id="playerName"><%= player.nickname %></strong>
+          <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/webp" hidden>
+          <span class="avatar-status" id="avatarStatus" aria-live="polite"></span>
+        <% } %>
+      </div>
+    </div>
+
+    <% if (!player) { %>
+      <div class="gate">
+        <div class="gate-kicker">Trivia semanal · sin emails</div>
+        <h1>Entrá a jugar y subí en el ranking.</h1>
+        <p>Usá tu nickname y una contraseña. Tu cuenta, tus puntos y tu perfil quedan guardados.</p>
+        <div class="auth-card">
+          <div class="auth-tabs" role="tablist">
+            <button type="button" class="auth-tab active" data-auth-mode="login" role="tab">Iniciar sesión</button>
+            <button type="button" class="auth-tab" data-auth-mode="register" role="tab">Registrarse</button>
+          </div>
+          <form id="authForm">
+            <input type="text" id="nickname" placeholder="Tu nickname" maxlength="20" autocomplete="username" required>
+            <input type="password" id="password" placeholder="Tu contraseña" minlength="6" maxlength="72" autocomplete="current-password" required>
+            <p class="auth-hint" id="passwordHint">Ingresá tu contraseña para continuar.</p>
+            <altcha-widget challengeurl="/api/captcha-challenge" hidefooter></altcha-widget>
+            <div class="error-msg" id="registerError"></div>
+            <button type="submit" class="btn btn-primary" id="authSubmit">Entrar a jugar</button>
+          </form>
+        </div>
+      </div>
+    <% } else { %>
+      <section class="profile-gate" id="profileGate">
+        <div class="profile-heading">
+          <span class="gate-kicker">Espacio de juego</span>
+          <h1>Dejá tu perfil listo.</h1>
+          <p>Podés cambiar tu foto o nickname. El nombre sólo se guarda si está disponible.</p>
+        </div>
+        <div class="profile-card">
+          <button type="button" class="profile-avatar-button avatar-trigger" id="profileAvatarTrigger" aria-label="Cambiar foto de perfil">
+            <span class="avatar avatar-profile" id="profileAvatar">
+              <% if (player.avatar_data) { %><img src="<%= player.avatar_data %>" alt=""><% } else { %><%= player.nickname.charAt(0).toUpperCase() %><% } %>
+            </span>
+            <span class="avatar-edit-label">Cambiar foto</span>
+          </button>
+          <form id="profileForm" class="profile-form">
+            <label for="profileNickname">Nickname</label>
+            <input type="text" id="profileNickname" value="<%= player.nickname %>" maxlength="20" required>
+            <div class="error-msg" id="profileError"></div>
+            <button type="submit" class="btn btn-secondary">Guardar cambios</button>
+          </form>
+          <a href="/game" class="btn btn-primary play-start-btn" id="continueGame"><span aria-hidden="true">▶</span> Jugar</a>
+          <button type="button" class="logout-link" id="logoutButton">Cerrar sesión</button>
+        </div>
+      </section>
+    <% } %>
+  </div>
+
+  <% if (player) { %>
+    <%- include('partials/bottom-nav', { active: 'jugar' }) %>
+  <% } %>
+
+  <script src="/js/altcha.min.js" defer></script>
+  <script src="/js/game.js"></script>
+</body>
+</html>

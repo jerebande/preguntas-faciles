@@ -1,0 +1,49 @@
+<header class="admin-header">
+  <div class="admin-brand">
+    <img src="/img/logo.png" alt="" class="admin-brand-mark">
+    <div>
+      <strong>preguntas.faciles</strong>
+      <small>Panel de administración</small>
+    </div>
+  </div>
+
+  <div class="admin-user">
+    <span>Sesión de <strong><%= admin.username %></strong></span>
+    <form method="POST" action="/admin/logout">
+      <button type="submit" class="admin-logout">Salir</button>
+    </form>
+  </div>
+
+  <button type="button" class="admin-menu-toggle" id="adminMenuToggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="adminNav">
+    <span class="admin-menu-icon">
+      <span></span><span></span><span></span>
+    </span>
+    <span class="admin-menu-label">Menú</span>
+  </button>
+</header>
+
+<nav class="admin-nav" id="adminNav" aria-label="Navegación del panel">
+  <a href="/admin" class="<%= active === 'dashboard' ? 'active' : '' %>">
+    <span>◎</span> Dashboard
+  </a>
+  <a href="/admin/questions" class="<%= active === 'questions' ? 'active' : '' %>">
+    <span>☷</span> Preguntas
+  </a>
+  <a href="/admin/questions/new" class="<%= active === 'new-question' ? 'active' : '' %>">
+    <span>+</span> Nueva pregunta
+  </a>
+  <a href="/admin/questions/generate-ai" class="<%= active === 'ai' ? 'active' : '' %>">
+    <span>✦</span> Generar con IA
+  </a>
+  <a href="/admin/seasons" class="<%= active === 'seasons' ? 'active' : '' %>">
+    <span>◷</span> Temporadas
+  </a>
+  <a href="/admin/stats" class="<%= active === 'stats' ? 'active' : '' %>">
+    <span>▥</span> Estadísticas
+  </a>
+  <a href="/admin/settings" class="<%= active === 'settings' ? 'active' : '' %>">
+    <span>⚙</span> Configuración
+  </a>
+</nav>
+
+<script src="/js/admin-nav.js" defer></script>

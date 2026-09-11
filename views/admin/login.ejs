@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('../partials/head', { title: 'Admin — preguntas.faciles' }) %>
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-card">
+      <img src="/img/logo.png" alt="preguntas.faciles" class="login-logo">
+      <h1>Panel de administrador</h1>
+      <form method="POST" action="/admin/login">
+        <input type="text" name="username" placeholder="Usuario" required autocomplete="username">
+        <input type="password" name="password" placeholder="Contraseña" required autocomplete="current-password">
+        <div class="error-msg"><%= error || '' %></div>
+        <button type="submit" class="btn btn-primary">Ingresar</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('../partials/head', { title: 'Generar preguntas con IA' }) %>
+</head>
+<body>
+  <div class="admin-body">
+    <%- include('../partials/admin-nav', { active: 'ai', admin }) %>
+
+    <h2 style="font-family: var(--font-display); margin-top:0;">Generar preguntas con IA</h2>
+    <p style="color: var(--gray); font-size: 13px; max-width: 520px;">
+      Las preguntas generadas se guardan como <strong style="color: var(--white);">inactivas</strong>. La imagen es opcional.
+      No aparecen en el juego hasta que las revises y las actives desde
+      <a href="/admin/questions" style="color: var(--lime);">Preguntas</a>.
+    </p>
+
+    <form method="POST" action="/admin/questions/generate-ai" class="form-grid" style="margin: 24px 0 36px;">
+      <div class="full">
+        <label>Tema (opcional)</label>
+        <input type="text" name="topic" placeholder="Ej: fútbol argentino, historia, cine">
+      </div>
+      <div>
+        <label>Cantidad</label>
+        <input type="number" name="count" value="10" min="1" max="15" required>
+      </div>
+      <div>
+        <label>Dificultad</label>
+        <select name="difficulty">
+          <option value="">Variada</option>
+          <option value="facil">Fácil</option>
+          <option value="media">Media</option>
+          <option value="dificil">Difícil</option>
+        </select>
+      </div>
+      <div>
+        <label>Categoría (opcional)</label>
+        <select name="category_id">
+          <option value="">Sin categoría</option>
+          <% categories.forEach(c => { %>
+            <option value="<%= c.id %>"><%= c.name %></option>
+          <% }) %>
+        </select>
+      </div>
+      <label class="full" style="display:flex; align-items:center; gap:10px; color:var(--gray);">
+        <input type="checkbox" name="include_images" value="1" style="width:auto;">
+        Generar una imagen temática para cada pregunta
+      </label>
+      <div class="full">
+        <button type="submit" class="btn btn-primary" style="width:auto;">Generar</button>
+      </div>
+    </form>
+
+    <% if (error) { %>
+      <p class="error-msg" style="margin-bottom: 24px;"><%= error %></p>
+    <% } %>
+
+    <% if (generated) { %>
+      <h2 style="font-family: var(--font-display);">
+        Se guardaron <%= generated.length %> preguntas como borrador
+      </h2>
+      <table>
+        <thead>
+          <tr><th>Pregunta</th><th>Imagen</th><th>Correcta</th><th>Dificultad</th></tr>
+        </thead>
+        <tbody>
+          <% generated.forEach(q => { %>
+            <tr>
+              <td><%= q.question_text %></td>
+              <td><%= q.image_url ? 'Generada' : 'Sin imagen' %></td>
+              <td><%= q.correct_option.toUpperCase() %></td>
+              <td><%= q.difficulty || 'facil' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      <a href="/admin/questions" class="btn btn-secondary" style="width:auto; display:inline-block; margin-top:16px;">Ir a revisar y activar</a>
+    <% } %>
+  </div>
+</body>
+</html>

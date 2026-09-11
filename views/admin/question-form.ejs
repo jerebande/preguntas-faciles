@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('../partials/head', { title: question ? 'Editar pregunta' : 'Nueva pregunta' }) %>
+</head>
+<body>
+  <div class="admin-body">
+    <%- include('../partials/admin-nav', { active: question ? 'questions' : 'new-question', admin }) %>
+
+    <h2 style="font-family: var(--font-display); margin-top:0;">
+      <%= question ? 'Editar pregunta' : 'Nueva pregunta' %>
+    </h2>
+
+    <form method="POST" enctype="multipart/form-data" action="<%= question ? `/admin/questions/${question.id}/edit` : '/admin/questions/new' %>" class="form-grid">
+      <div class="full">
+        <label>Pregunta</label>
+        <textarea name="question_text" rows="2" required><%= question ? question.question_text : '' %></textarea>
+      </div>
+
+      <div>
+        <label>Opción A</label>
+        <input type="text" name="option_a" value="<%= question ? question.option_a : '' %>" required>
+      </div>
+      <div>
+        <label>Opción B</label>
+        <input type="text" name="option_b" value="<%= question ? question.option_b : '' %>" required>
+      </div>
+      <div>
+        <label>Opción C</label>
+        <input type="text" name="option_c" value="<%= question ? question.option_c : '' %>" required>
+      </div>
+      <div>
+        <label>Opción D</label>
+        <input type="text" name="option_d" value="<%= question ? question.option_d : '' %>" required>
+      </div>
+
+      <div>
+        <label>Respuesta correcta</label>
+        <select name="correct_option" required>
+          <% ['a','b','c','d'].forEach(k => { %>
+            <option value="<%= k %>" <%= question && question.correct_option === k ? 'selected' : '' %>><%= k.toUpperCase() %></option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div>
+        <label>Categoría (opcional)</label>
+        <select name="category_id">
+          <option value="">Sin categoría</option>
+          <% categories.forEach(c => { %>
+            <option value="<%= c.id %>" <%= question && question.category_id === c.id ? 'selected' : '' %>><%= c.name %></option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div>
+        <label>Dificultad</label>
+        <select name="difficulty">
+          <% ['facil','media','dificil'].forEach(d => { %>
+            <option value="<%= d %>" <%= question && question.difficulty === d ? 'selected' : '' %>><%= d %></option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div>
+        <label>Puntos</label>
+        <input type="number" name="points_value" value="<%= question ? question.points_value : 10 %>" min="1" required>
+      </div>
+
+      <div class="full image-field">
+        <label>Imagen de fondo (opcional)</label>
+        <input class="image-file-input" type="file" name="image_file" id="imageFile" accept="image/png,image/jpeg,image/webp,image/gif">
+        <input type="hidden" name="image_url" id="imageUrl" value="<%= question && question.image_url ? question.image_url : '' %>">
+
+        <div class="image-preview" id="imagePreview" <%= question && question.image_url ? `style="background-image:url('${question.image_url}')"` : '' %>></div>
+
+        <div class="image-actions">
+          <label class="image-action image-action-upload" for="imageFile">Cambiar foto</label>
+          <button type="button" class="image-action image-action-ai" id="generateImage">Generar con IA</button>
+        </div>
+
+        <small class="field-help">Elegí una imagen desde tu dispositivo o generá una ilustración temática. Máximo 5 MB.</small>
+        <small class="field-help" id="imageStatus" role="status"></small>
+      </div>
+
+      <% if (question) { %>
+        <div>
+          <label>Estado</label>
+          <select name="active">
+            <option value="1" <%= question.active ? 'selected' : '' %>>Activa</option>
+            <option value="0" <%= !question.active ? 'selected' : '' %>>Inactiva</option>
+          </select>
+        </div>
+      <% } %>
+
+      <div class="full">
+        <button type="submit" class="btn btn-primary" style="width:auto;">Guardar</button>
+      </div>
+    </form>
+  </div>
+  <script>
+    const imageUrl = document.getElementById('imageUrl');
+    const imageFile = document.getElementById('imageFile');
+    const imagePreview = document.getElementById('imagePreview');
+    const imageStatus = document.getElementById('imageStatus');
+    const generateImage = document.getElementById('generateImage');
+    const questionText = document.querySelector('[name="question_text"]');
+    const category = document.querySelector('[name="category_id"]');
+
+    function updatePreview() {
+      imagePreview.style.backgroundImage = imageUrl.value ? `url("${imageUrl.value.replace(/"/g, '')}")` : '';
+    }
+
+    imageUrl.addEventListener('input', updatePreview);
+    imageFile.addEventListener('change', () => {
+      const file = imageFile.files[0];
+      if (!file) return;
+      imageUrl.value = '';
+      imageStatus.textContent = 'Imagen lista para guardar.';
+      imageStatus.style.color = 'var(--green)';
+      imagePreview.style.backgroundImage = `url("${URL.createObjectURL(file)}")`;
+    });
+    generateImage.addEventListener('click', () => {
+      const theme = category.options[category.selectedIndex]?.text || 'cultura general';
+      const difficulty = document.querySelector('[name="difficulty"]').value || 'variada';
+      const prompt = `editorial trivia illustration about ${theme}, ${questionText.value.slice(0, 240)}, difficulty ${difficulty}, colorful, clean, no text, wide background`;
+      const seed = Math.floor(Math.random() * 1000000000);
+      const generatedUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1200&height=700&nologo=true&seed=${seed}&t=${Date.now()}`;
+      const generatedImage = new Image();
+
+      generateImage.disabled = true;
+      imageStatus.textContent = 'Generando imagen...';
+      imageStatus.style.color = 'var(--gray)';
+      generatedImage.onload = () => {
+        imageFile.value = '';
+        imageUrl.value = generatedUrl;
+        imagePreview.style.backgroundImage = `url("${generatedUrl}")`;
+        imageStatus.textContent = 'Imagen generada. Guardá la pregunta para conservarla.';
+        imageStatus.style.color = 'var(--green)';
+        generateImage.disabled = false;
+      };
+      generatedImage.onerror = () => {
+        imageStatus.textContent = 'No se pudo generar la imagen. Probá nuevamente.';
+        imageStatus.style.color = 'var(--red)';
+        generateImage.disabled = false;
+      };
+      generatedImage.src = generatedUrl;
+    });
+  </script>
+</body>
+</html>

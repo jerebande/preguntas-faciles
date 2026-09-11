@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('partials/head', { title: 'preguntas.faciles — Mis estadísticas' }) %>
+</head>
+<body class="stats-page">
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">
+        <img src="/img/logo.png" alt="preguntas.faciles" class="mark">
+        preguntas.faciles
+      </div>
+      <% if (player) { %>
+        <div class="player-chip">
+          <span class="avatar avatar-small">
+            <% if (player.avatar_data) { %><img src="<%= player.avatar_data %>" alt=""><% } else { %><%= player.nickname.charAt(0).toUpperCase() %><% } %>
+          </span>
+          <strong><%= player.nickname %></strong>
+        </div>
+      <% } %>
+    </div>
+
+    <section class="stats-heading">
+      <div>
+        <span class="gate-kicker">Mis estadísticas</span>
+        <h1>Tu rendimiento.</h1>
+        <p>Compará tu historial completo con lo que hiciste en <strong><%= season.name %></strong>.</p>
+      </div>
+    </section>
+
+    <!-- Tarjetas de ranking: actual + mejor histórico -->
+    <section class="rank-cards-grid">
+      <article class="rank-position-card rank-current">
+        <% if (position) { %>
+          <div class="rank-medal" data-rank="<%= position <= 3 ? position : 'x' %>">
+            <% if (position === 1) { %>🥇<% } else if (position === 2) { %>🥈<% } else if (position === 3) { %>🥉<% } else { %>#<%= position %><% } %>
+          </div>
+          <div class="rank-info">
+            <span class="rank-kicker">Ranking actual</span>
+            <strong class="rank-number">#<%= position %></strong>
+            <span class="rank-season"><%= season.name %></span>
+          </div>
+          <div class="rank-points">
+            <strong><%= score.points %></strong>
+            <span>puntos</span>
+          </div>
+        <% } else { %>
+          <div class="rank-info">
+            <span class="rank-kicker">Ranking actual</span>
+            <strong class="rank-number">—</strong>
+            <span class="rank-season">Todavía no jugaste esta temporada</span>
+          </div>
+        <% } %>
+      </article>
+
+      <article class="rank-position-card rank-best">
+        <% if (bestPosition) { %>
+          <div class="rank-medal" data-rank="<%= bestPosition <= 3 ? bestPosition : 'x' %>">
+            <% if (bestPosition === 1) { %>🥇<% } else if (bestPosition === 2) { %>🥈<% } else if (bestPosition === 3) { %>🥉<% } else { %>#<%= bestPosition %><% } %>
+          </div>
+          <div class="rank-info">
+            <span class="rank-kicker">Mejor histórico</span>
+            <strong class="rank-number">#<%= bestPosition %></strong>
+            <span class="rank-season"><%= bestPositionSeason %></span>
+          </div>
+        <% } else { %>
+          <div class="rank-info">
+            <span class="rank-kicker">Mejor histórico</span>
+            <strong class="rank-number">—</strong>
+            <span class="rank-season">Sin temporadas jugadas todavía</span>
+          </div>
+        <% } %>
+      </article>
+    </section>
+
+    <!-- Comparativa: histórico vs temporada -->
+    <section class="stats-chart-section">
+      <div class="section-heading">
+        <div><span class="gate-kicker">Comparativa</span><h2>Histórico vs. temporada</h2></div>
+      </div>
+
+      <div class="stats-charts-grid">
+        <article class="stats-chart-card">
+          <header class="stats-chart-head">
+            <span class="gate-kicker">Histórico</span>
+            <h3>Todas tus partidas</h3>
+            <small><%= globalStats.total_answers %> respuestas registradas</small>
+          </header>
+          <% if (globalStats.total_answers > 0) { %>
+            <div class="donut" style="--correct: <%= (globalStats.correct_answers / globalStats.total_answers) * 100 %>; --wrong: <%= ((Number(globalStats.correct_answers) + Number(globalStats.wrong_answers)) / globalStats.total_answers) * 100 %>;">
+              <div class="donut-center">
+                <strong><%= globalStats.total_answers %></strong>
+                <span>respuestas</span>
+              </div>
+            </div>
+            <ul class="stats-legend">
+              <li>
+                <span class="legend-dot legend-correct"></span>
+                <span class="legend-label">Acertadas</span>
+                <strong><%= ((globalStats.correct_answers / globalStats.total_answers) * 100).toFixed(1) %>%</strong>
+                <small><%= globalStats.correct_answers %> respuestas</small>
+              </li>
+              <li>
+                <span class="legend-dot legend-wrong"></span>
+                <span class="legend-label">Fallidas</span>
+                <strong><%= ((globalStats.wrong_answers / globalStats.total_answers) * 100).toFixed(1) %>%</strong>
+                <small><%= globalStats.wrong_answers %> respuestas</small>
+              </li>
+              <li>
+                <span class="legend-dot legend-timeout"></span>
+                <span class="legend-label">Tiempo agotado</span>
+                <strong><%= ((globalStats.timed_out / globalStats.total_answers) * 100).toFixed(1) %>%</strong>
+                <small><%= globalStats.timed_out %> respuestas</small>
+              </li>
+            </ul>
+          <% } else { %>
+            <div class="empty-state">Sin respuestas todavía.</div>
+          <% } %>
+        </article>
+
+        <article class="stats-chart-card">
+          <header class="stats-chart-head">
+            <span class="gate-kicker">Actual</span>
+            <h3><%= season.name %></h3>
+            <small><%= seasonStats.total_answers %> respuestas esta temporada</small>
+          </header>
+          <% if (seasonStats.total_answers > 0) { %>
+            <div class="donut" style="--correct: <%= (seasonStats.correct_answers / seasonStats.total_answers) * 100 %>; --wrong: <%= ((Number(seasonStats.correct_answers) + Number(seasonStats.wrong_answers)) / seasonStats.total_answers) * 100 %>;">
+              <div class="donut-center">
+                <strong><%= seasonStats.total_answers %></strong>
+                <span>respuestas</span>
+              </div>
+            </div>
+            <ul class="stats-legend">
+              <li>
+                <span class="legend-dot legend-correct"></span>
+                <span class="legend-label">Acertadas</span>
+                <strong><%= ((seasonStats.correct_answers / seasonStats.total_answers) * 100).toFixed(1) %>%</strong>
+                <small><%= seasonStats.correct_answers %> respuestas</small>
+              </li>
+              <li>
+                <span class="legend-dot legend-wrong"></span>
+                <span class="legend-label">Fallidas</span>
+                <strong><%= ((seasonStats.wrong_answers / seasonStats.total_answers) * 100).toFixed(1) %>%</strong>
+                <small><%= seasonStats.wrong_answers %> respuestas</small>
+              </li>
+              <li>
+                <span class="legend-dot legend-timeout"></span>
+                <span class="legend-label">Tiempo agotado</span>
+                <strong><%= ((seasonStats.timed_out / seasonStats.total_answers) * 100).toFixed(1) %>%</strong>
+                <small><%= seasonStats.timed_out %> respuestas</small>
+              </li>
+            </ul>
+          <% } else { %>
+            <div class="empty-state">Todavía no jugaste esta temporada.</div>
+          <% } %>
+        </article>
+      </div>
+    </section>
+  </div>
+
+  <%- include('partials/bottom-nav', { active: 'stats' }) %>
+</body>
+</html>
