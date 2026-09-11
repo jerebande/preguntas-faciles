@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const session = require("express-session");
+const MySQLStore = require("express-mysql-session")(session);
 const path = require("path");
 const db = require("./database/db");
 const adminModel = require("./models/adminModel");
@@ -40,8 +41,18 @@ app.use(express.json({ limit: "3mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
+const sessionStore = new MySQLStore({
+    // options: si querés controlar cada cuánto se limpian sesiones vencidas, etc.
+    // ver docs de express-mysql-session
+}, db);
+
+sessionStore.on("error", (err) => {
+    console.error("Error en el store de sesiones (MySQL):", err.message);
+});
+
 app.use(session({
     secret: process.env.SESSION_SECRET || "dev-secret-cambiame",
+    store: sessionStore,
     resave: false,
     saveUninitialized: false,
     cookie: {
