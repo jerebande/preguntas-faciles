@@ -6,7 +6,7 @@
 <body class="home-page">
   <div class="app">
     <div class="topbar">
-      <div class="brand">
+      <div class="brand" id="brandTrigger">
         <img src="/img/logo.png" alt="preguntas.faciles" class="mark">
         preguntas.faciles
       </div>
@@ -81,5 +81,22 @@
 
   <script src="/js/altcha.min.js" defer></script>
   <script src="/js/game.js"></script>
+  <script>
+    (function () {
+      var trigger = document.getElementById('brandTrigger');
+      if (!trigger) return;
+      var clicks = 0;
+      var resetTimer = null;
+      trigger.addEventListener('click', function () {
+        clicks += 1;
+        clearTimeout(resetTimer);
+        resetTimer = setTimeout(function () { clicks = 0; }, 1500);
+        if (clicks >= 30) {
+          clicks = 0;
+          window.location.href = '/admin/login';
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
