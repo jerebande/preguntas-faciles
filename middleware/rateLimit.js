@@ -14,7 +14,7 @@ function authLimiter(req, res, next) {
 
     if (current.count >= MAX_ATTEMPTS) {
         res.setHeader("Retry-After", Math.ceil((WINDOW_MS - (now - current.startedAt)) / 1000));
-        return res.status(429).send("Demasiados intentos. Esperá unos minutos y probá de nuevo.");
+        return res.status(429).json({ error: "Demasiados intentos. Esperá unos minutos y probá de nuevo." });
     }
 
     current.count += 1;

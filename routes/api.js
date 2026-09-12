@@ -34,6 +34,7 @@ router.all("/captcha-challenge", async (req, res, next) => {
 
 router.post("/register", authLimiter, playerController.register);
 router.post("/login", authLimiter, playerController.login);
+router.post("/claim-account", authLimiter, playerController.claimAccount);
 router.post("/logout", playerController.logout);
 router.get("/me", playerController.me);
 router.post("/profile/avatar", playerController.updateAvatar);
