@@ -42,9 +42,16 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
 const sessionStore = new MySQLStore({
-    // options: si querés controlar cada cuánto se limpian sesiones vencidas, etc.
-    // ver docs de express-mysql-session
-}, db);
+    host: process.env.DB_HOST || "localhost",
+    user: process.env.DB_USER || "preguntas_faciles",
+    password: process.env.DB_PASSWORD || "",
+    database: process.env.DB_NAME || "preguntas_faciles",
+    port: process.env.DB_PORT || 3306,
+    createDatabaseTable: true,
+    clearExpired: true,
+    checkExpirationInterval: 15 * 60 * 1000, // limpia sesiones vencidas cada 15 min
+    expiration: 1000 * 60 * 60 * 24 * 90 // debe coincidir con cookie.maxAge
+});
 
 sessionStore.on("error", (err) => {
     console.error("Error en el store de sesiones (MySQL):", err.message);

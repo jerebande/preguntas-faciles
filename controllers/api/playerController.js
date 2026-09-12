@@ -66,6 +66,48 @@ async function login(req, res, next) {
     }
 }
 
+// Permite a un jugador viejo (registrado antes de que existiera el login
+// con contraseña) activar su cuenta poniéndose una contraseña por primera vez.
+async function claimAccount(req, res, next) {
+    try {
+        const captchaOk = await captchaService.verifyCaptcha(req.body.altcha);
+        if (!captchaOk) {
+            return res.status(400).json({ error: "No pudimos verificar que sos una persona. Recargá la página e intentá de nuevo." });
+        }
+
+        const nickname = (req.body.nickname || "").trim();
+        const password = req.body.password || "";
+
+        if (password.length < 6 || password.length > 72) {
+            return res.status(400).json({ error: "La contraseña debe tener entre 6 y 72 caracteres." });
+        }
+
+        const player = await playerModel.findByNickname(nickname);
+        if (!player) {
+            return res.status(404).json({ error: "No encontramos ninguna cuenta con ese nickname." });
+        }
+
+        if (player.password_hash) {
+            return res.status(409).json({ error: "Esa cuenta ya tiene contraseña. Iniciá sesión normalmente." });
+        }
+
+        const passwordHash = await bcrypt.hash(password, 10);
+        const claimed = await playerModel.claimAccount(nickname, passwordHash);
+        if (!claimed) {
+            // Alguien la activó un instante antes (doble click, dos pestañas, etc).
+            return res.status(409).json({ error: "Esa cuenta ya tiene contraseña. Iniciá sesión normalmente." });
+        }
+
+        req.session.playerId = player.id;
+        req.session.gameQuestionsAnswered = 0;
+        req.session.pendingQuestionId = null;
+        req.session.pendingQuestionStartedAt = null;
+        res.json({ ok: true, nickname: player.nickname });
+    } catch (err) {
+        next(err);
+    }
+}
+
 function logout(req, res) {
     req.session.destroy(() => res.json({ ok: true }));
 }
@@ -130,4 +172,4 @@ async function updateProfile(req, res, next) {
     }
 }
 
-module.exports = { register, login, logout, me, updateAvatar, updateProfile };
+module.exports = { register, login, claimAccount, logout, me, updateAvatar, updateProfile };

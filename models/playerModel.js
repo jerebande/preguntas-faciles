@@ -28,6 +28,17 @@ async function updateAvatar(playerId, avatarData) {
     return findById(playerId);
 }
 
+// Le pone contraseña por primera vez a una cuenta vieja que nunca tuvo
+// (password_hash NULL). Si ya tenía, no hace nada y devuelve false —
+// así queda a prueba de carreras (dos requests al mismo tiempo, doble click, etc).
+async function claimAccount(nickname, passwordHash) {
+    const [result] = await db.query(
+        "UPDATE players SET password_hash = ? WHERE nickname = ? AND password_hash IS NULL",
+        [passwordHash, nickname]
+    );
+    return result.affectedRows > 0;
+}
+
 async function updateNickname(playerId, nickname) {
     await db.query("UPDATE players SET nickname = ? WHERE id = ?", [nickname, playerId]);
     return findById(playerId);
@@ -71,6 +82,7 @@ module.exports = {
     findById,
     findByNickname,
     create,
+    claimAccount,
     updateAvatar,
     updateNickname,
     ensureAvatarColumn,
