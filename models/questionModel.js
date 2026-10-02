@@ -33,18 +33,29 @@ async function ensureImageUrlColumn() {
     }
 }
 
-// Pregunta aleatoria activa que el jugador nunca respondió en ninguna temporada.
+// Pregunta aleatoria activa que el jugador todavía no respondió en esta temporada.
 async function findRandomUnanswered(playerId, seasonId) {
+    const unansweredCondition = `q.active = 1
+         AND NOT EXISTS (
+             SELECT 1 FROM answer_logs a
+             WHERE a.player_id = ? AND a.season_id = ? AND a.question_id = q.id
+         )`;
+    const params = [playerId, seasonId];
+    const [[{ total }]] = await db.query(
+        `SELECT COUNT(*) AS total FROM questions q WHERE ${unansweredCondition}`,
+        params
+    );
+    const unansweredCount = Number(total);
+    if (!unansweredCount) return null;
+
+    const offset = Math.floor(Math.random() * unansweredCount);
     const [rows] = await db.query(
         `SELECT q.id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.points_value, q.image_url
          FROM questions q
-         WHERE q.active = 1
-                     AND q.id NOT IN (
-                         SELECT question_id FROM answer_logs WHERE player_id = ?
-           )
-         ORDER BY RAND()
-         LIMIT 1`,
-        [playerId]
+         WHERE ${unansweredCondition}
+         ORDER BY q.id
+         LIMIT 1 OFFSET ?`,
+        [...params, offset]
     );
     return rows[0] || null;
 }

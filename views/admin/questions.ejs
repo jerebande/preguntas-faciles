@@ -25,10 +25,12 @@
     <section class="question-bulk-actions" aria-label="Estado global de preguntas">
       <span>Estado global</span>
       <form method="POST" action="/admin/questions/set-active" onsubmit="return confirm('¿Activar todas las preguntas? También se publicarán los borradores.');">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <input type="hidden" name="active" value="1">
         <button type="submit" class="bulk-action bulk-action-on">Activar todas</button>
       </form>
       <form method="POST" action="/admin/questions/set-active" onsubmit="return confirm('¿Desactivar todas las preguntas? Ninguna aparecerá en el juego.');">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <input type="hidden" name="active" value="0">
         <button type="submit" class="bulk-action bulk-action-off">Desactivar todas</button>
       </form>
@@ -58,9 +60,11 @@
               <td class="row-actions actions-column" data-label="Acciones">
                 <a href="/admin/questions/<%= q.id %>/edit" class="table-action">Editar</a>
                 <form method="POST" action="/admin/questions/<%= q.id %>/toggle">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                   <button type="submit" class="table-action"><%= q.active ? 'Pausar' : 'Publicar' %></button>
                 </form>
                 <form method="POST" action="/admin/questions/<%= q.id %>/delete" onsubmit="return confirm('¿Eliminar esta pregunta?');">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                   <button type="submit" class="table-action table-action-danger">Eliminar</button>
                 </form>
               </td>

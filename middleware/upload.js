@@ -13,11 +13,19 @@ const storage = multer.diskStorage({
     }
 });
 
+const allowedImageTypes = new Map([
+    [".jpg", "image/jpeg"],
+    [".png", "image/png"],
+    [".webp", "image/webp"],
+    [".gif", "image/gif"]
+]);
+
 module.exports = multer({
     storage,
     limits: { fileSize: 5 * 1024 * 1024 },
     fileFilter: (req, file, callback) => {
-        if (!file.mimetype.startsWith("image/")) {
+        const extension = path.extname(file.originalname).toLowerCase();
+        if (allowedImageTypes.get(extension) !== file.mimetype.toLowerCase()) {
             return callback(new multer.MulterError("LIMIT_UNEXPECTED_FILE", "image_file"));
         }
         callback(null, true);

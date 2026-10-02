@@ -23,7 +23,6 @@ async function submitAnswer(req, res, next) {
         const season = await seasonModel.getActive();
         const questionTimeSeconds = await settingsModel.getQuestionTimeSeconds();
         const questionTimeLimitMs = questionTimeSeconds * 1000;
-        const answeredInSeason = await answerLogModel.countForPlayerInSeason(req.player.id, season.id);
 
         const question = await questionModel.findActiveById(questionId);
         if (!question) return res.status(404).json({ error: "Pregunta no encontrada." });
@@ -31,7 +30,7 @@ async function submitAnswer(req, res, next) {
         const already = await answerLogModel.hasAnswered(req.player.id, questionId);
         if (already) return res.status(409).json({ error: "Ya respondiste esta pregunta." });
 
-        if (answeredInSeason >= 10) {
+        if ((Number(req.session.gameQuestionsAnswered) || 0) >= 10) {
             return res.status(409).json({ error: "Tu partida ya terminó." });
         }
 

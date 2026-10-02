@@ -131,6 +131,8 @@ de negocio.
   para que las cookies seguras y los límites por IP funcionen correctamente.
 - La aplicación agrega cabeceras HTTP de seguridad y el login admin/jugador tiene un
   límite de solicitudes por IP para dificultar ataques de fuerza bruta.
+- Las operaciones POST del panel de administración usan tokens CSRF y el ID de sesión se
+  regenera al iniciar sesión.
 - Poner la aplicación detrás de un WAF/firewall como Cloudflare: permitir solo HTTP/HTTPS,
   ocultar el puerto de Node y limitar tráfico por IP antes de que llegue a Express.
 - Agregar Cloudflare Turnstile o hCaptcha al registro y al login si aparecen bots. El

@@ -293,6 +293,7 @@ async function loadQuestion() {
 
   const res = await fetch('/api/question');
   const data = await res.json();
+  const responseReceivedAt = performance.now();
 
   if (data.done) {
     const avgTimeHtml = (data.gameComplete && data.avgResponseTimeMs != null)
@@ -324,7 +325,7 @@ async function loadQuestion() {
   }
 
   if (questionProgress) questionProgress.textContent = `Pregunta ${data.questionNumber} de 10`;
-  renderQuestion(data.question, data.timeLimitMs, data.questionStartedAt);
+  renderQuestion(data.question, data.timeRemainingMs, responseReceivedAt);
 }
 
 async function startNewGame() {
@@ -333,7 +334,7 @@ async function startNewGame() {
   await loadQuestion();
 }
 
-function renderQuestion(q, timeLimitMs, questionStartedAt) {
+function renderQuestion(q, timeRemainingMs, timerStartedAt) {
   activeQuestionId = q.id;
   questionResolved = false;
   const options = [
@@ -345,7 +346,7 @@ function renderQuestion(q, timeLimitMs, questionStartedAt) {
 
   gameArea.innerHTML = `
     <div class="question-card question-card-play">
-      <div class="question-timer" id="questionTimer" aria-live="polite">${Math.ceil(timeLimitMs / 1000)}</div>
+      <div class="question-timer" id="questionTimer" aria-live="polite">${Math.ceil(timeRemainingMs / 1000)}</div>
       <div class="question-text">${escapeHtml(q.question_text)}</div>
       ${q.image_url ? `
         <div class="question-visual">
@@ -362,18 +363,18 @@ function renderQuestion(q, timeLimitMs, questionStartedAt) {
   document.querySelectorAll('.option-btn').forEach(btn => {
     btn.addEventListener('click', () => submitAnswer(q.id, btn.dataset.key));
   });
-  startQuestionTimer(q.id, timeLimitMs, questionStartedAt);
+  startQuestionTimer(q.id, timeRemainingMs, timerStartedAt);
 }
 
-function startQuestionTimer(questionId, timeLimitMs = 10000, questionStartedAt = Date.now()) {
+function startQuestionTimer(questionId, timeRemainingMs = 10000, timerStartedAt = performance.now()) {
   clearInterval(questionTimerId);
   const timer = document.getElementById('questionTimer');
-  const deadline = Number(questionStartedAt) + timeLimitMs;
+  const deadline = Number(timerStartedAt) + timeRemainingMs;
   let lastAnnouncedSecond = null;
 
   const tick = () => {
     if (questionResolved || activeQuestionId !== questionId) return;
-    const remaining = Math.max(0, deadline - Date.now());
+    const remaining = Math.max(0, deadline - performance.now());
     const seconds = Math.ceil(remaining / 1000);
     if (seconds !== lastAnnouncedSecond && seconds > 0) {
       lastAnnouncedSecond = seconds;

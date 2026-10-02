@@ -10,6 +10,7 @@
   <div class="admin-user">
     <span>Sesión de <strong><%= admin.username %></strong></span>
     <form method="POST" action="/admin/logout">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <button type="submit" class="admin-logout">Salir</button>
     </form>
   </div>

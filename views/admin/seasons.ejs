@@ -17,6 +17,7 @@
       Abre la próxima temporada con el mismo tipo y duración que la actual (<%= activeSeason && activeSeason.type === 'mensual' ? 'mensual' : 'semanal' %>).
     </p>
     <form method="POST" action="/admin/seasons/advance-current" style="margin: 0 0 32px;" onsubmit="return confirm('¿Abrir la próxima temporada? Se reiniciará el ranking actual.');">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <button type="submit" class="btn btn-primary" style="width:auto;">Abrir próxima temporada</button>
     </form>
 
@@ -29,6 +30,7 @@
       Usá esto para algo distinto a lo habitual: un evento especial, cambiar de semanal a mensual, o ponerle un nombre puntual.
     </p>
     <form method="POST" action="/admin/seasons/new" class="form-grid" style="margin-bottom: 36px;" onsubmit="return confirm('¿Seguro que querés reiniciar el ranking?');">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <div>
         <label>Nombre</label>
         <input type="text" name="name" placeholder="Ej: Semana 3 - Septiembre" required>

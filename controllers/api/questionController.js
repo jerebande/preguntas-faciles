@@ -23,24 +23,23 @@ async function getRandomQuestion(req, res, next) {
         const season = await seasonModel.getActive();
         const questionTimeSeconds = await settingsModel.getQuestionTimeSeconds();
         const questionTimeLimitMs = questionTimeSeconds * 1000;
-        const answeredInGame = await answerLogModel.countForPlayerInSeason(req.player.id, season.id);
-        req.session.gameQuestionsAnswered = answeredInGame;
+        const answeredInGame = Number(req.session.gameQuestionsAnswered) || 0;
 
         if (answeredInGame >= 10) {
             req.session.pendingQuestionId = null;
-            const nextRoundDate = new Date(season.ends_at).toLocaleDateString("es-AR");
             const { avg_response_time_ms: avgResponseTimeMs } = await answerLogModel.getPlayerStatsForPlayerInSeason(req.player.id, season.id);
             return res.json({
                 done: true,
                 gameComplete: true,
                 avgResponseTimeMs,
-                message: `Partida terminada. ¡Completaste las 10 preguntas! La próxima tanda estará disponible el ${nextRoundDate}.`
+                message: "Partida terminada. ¡Completaste las 10 preguntas! Podés empezar otra tanda ahora."
             });
         }
 
         if (req.session.pendingQuestionId && req.session.pendingSeasonId === season.id) {
             const questionStartedAt = req.session.pendingQuestionStartedAt || Date.now();
-            if (Date.now() - questionStartedAt >= questionTimeLimitMs) {
+            const timeRemainingMs = questionTimeLimitMs - (Date.now() - questionStartedAt);
+            if (timeRemainingMs <= 0) {
                 const timedOut = await answerLogModel.hasAnswered(req.player.id, req.session.pendingQuestionId);
                 if (!timedOut) {
                     await answerLogModel.record({
@@ -61,7 +60,7 @@ async function getRandomQuestion(req, res, next) {
             if (!alreadyAnswered) {
                 const pending = await questionModel.findActiveById(req.session.pendingQuestionId);
                 if (pending) {
-                    return res.json({ done: false, questionNumber: answeredInGame + 1, timeLimitMs: questionTimeLimitMs, questionStartedAt, question: toPublicQuestion(pending) });
+                    return res.json({ done: false, questionNumber: answeredInGame + 1, timeRemainingMs, question: toPublicQuestion(pending) });
                 }
             }
         }
@@ -70,15 +69,18 @@ async function getRandomQuestion(req, res, next) {
 
         if (!question) {
             req.session.pendingQuestionId = null;
-            const { avg_response_time_ms: avgResponseTimeMs } = await answerLogModel.getPlayerStatsForPlayerInSeason(req.player.id, season.id);
-            return res.json({ done: true, gameComplete: true, avgResponseTimeMs, message: "No quedan preguntas nuevas para tu usuario. ¡Volvé cuando agreguemos más!" });
+            return res.json({
+                done: true,
+                gameComplete: false,
+                message: "Ya respondiste todas las preguntas disponibles. Agregaremos más pronto."
+            });
         }
 
         req.session.pendingQuestionId = question.id;
         req.session.pendingSeasonId = season.id;
         req.session.pendingQuestionStartedAt = Date.now();
 
-        res.json({ done: false, questionNumber: answeredInGame + 1, timeLimitMs: questionTimeLimitMs, questionStartedAt: req.session.pendingQuestionStartedAt, question: toPublicQuestion(question) });
+        res.json({ done: false, questionNumber: answeredInGame + 1, timeRemainingMs: questionTimeLimitMs, question: toPublicQuestion(question) });
     } catch (err) {
         next(err);
     }

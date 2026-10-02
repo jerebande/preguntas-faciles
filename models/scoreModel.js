@@ -60,8 +60,8 @@ async function getWinnerForSeason(seasonId) {
     return rows[0] || null;
 }
 
-async function initializeSeasonScores(seasonId) {
-    await db.query(
+async function initializeSeasonScores(seasonId, connection = db) {
+    await connection.query(
         `INSERT IGNORE INTO scores
          (player_id, season_id, points, correct_answers, wrong_answers, best_streak, current_streak)
          SELECT id, ?, 0, 0, 0, 0, 0 FROM players`,
@@ -77,8 +77,8 @@ async function applyAnswerResult({ playerId, seasonId, isCorrect, pointsEarned }
            points = points + VALUES(points),
            correct_answers = correct_answers + VALUES(correct_answers),
            wrong_answers = wrong_answers + VALUES(wrong_answers),
-           current_streak = IF(VALUES(correct_answers) = 1, current_streak + 1, 0),
-           best_streak = GREATEST(best_streak, IF(VALUES(correct_answers) = 1, current_streak + 1, 0))`,
+           best_streak = GREATEST(best_streak, IF(VALUES(correct_answers) = 1, current_streak + 1, 0)),
+           current_streak = IF(VALUES(correct_answers) = 1, current_streak + 1, 0)`,
         [
             playerId, seasonId, pointsEarned,
             isCorrect ? 1 : 0, isCorrect ? 0 : 1,
@@ -137,57 +137,46 @@ async function getPlayerRankingPosition(playerId, seasonId) {
 // Mejor posición histórica del jugador: recorre todas las temporadas donde
 // haya jugado al menos una pregunta y calcula en cuál quedó mejor rankeado.
 async function getBestHistoricalPosition(playerId) {
-    const [seasons] = await db.query(
-        `SELECT DISTINCT season_id FROM scores
-         WHERE player_id = ? AND (correct_answers + wrong_answers) > 0
-         ORDER BY season_id DESC`,
-        [playerId]
+    const [rows] = await db.query(
+        `SELECT s.season_id, season.name AS season_name, s.player_id, p.nickname,
+                s.points, s.correct_answers,
+                COALESCE(response_times.avg_response_time_ms, 999999999) AS avg_response_time_ms
+         FROM scores s
+         JOIN players p ON p.id = s.player_id
+         JOIN seasons season ON season.id = s.season_id
+         LEFT JOIN (
+             SELECT season_id, player_id, AVG(response_time_ms) AS avg_response_time_ms
+             FROM answer_logs
+             WHERE season_id IN (
+                 SELECT season_id FROM scores
+                 WHERE player_id = ? AND (correct_answers + wrong_answers) > 0
+             ) AND response_time_ms IS NOT NULL
+             GROUP BY season_id, player_id
+         ) response_times ON response_times.season_id = s.season_id
+                         AND response_times.player_id = s.player_id
+         WHERE s.season_id IN (
+             SELECT season_id FROM scores
+             WHERE player_id = ? AND (correct_answers + wrong_answers) > 0
+         ) AND (s.correct_answers + s.wrong_answers) > 0
+         ORDER BY s.season_id, s.points DESC, s.correct_answers DESC,
+                  COALESCE(response_times.avg_response_time_ms, 999999999), p.nickname`,
+        [playerId, playerId]
     );
 
-    if (!seasons.length) return null;
-
     let best = null;
-    for (const { season_id: seasonId } of seasons) {
-        const [rows] = await db.query(
-            `SELECT s.name AS season_name,
-                    (
-                        SELECT COUNT(*) + 1
-                        FROM scores challenger
-                        JOIN players challenger_player ON challenger_player.id = challenger.player_id
-                        LEFT JOIN (
-                            SELECT player_id, AVG(response_time_ms) AS avg_response_time_ms
-                            FROM answer_logs
-                            WHERE season_id = ? AND response_time_ms IS NOT NULL
-                            GROUP BY player_id
-                        ) challenger_time ON challenger_time.player_id = challenger.player_id
-                        WHERE challenger.season_id = target.season_id
-                          AND (challenger.correct_answers + challenger.wrong_answers) > 0
-                          AND (
-                            challenger.points > target.points
-                            OR (challenger.points = target.points AND challenger.correct_answers > target.correct_answers)
-                            OR (challenger.points = target.points AND challenger.correct_answers = target.correct_answers
-                                AND COALESCE(challenger_time.avg_response_time_ms, 999999999) < COALESCE(target_time.avg_response_time_ms, 999999999))
-                            OR (challenger.points = target.points AND challenger.correct_answers = target.correct_answers
-                                AND COALESCE(challenger_time.avg_response_time_ms, 999999999) = COALESCE(target_time.avg_response_time_ms, 999999999)
-                                AND challenger_player.nickname < target_player.nickname)
-                          )
-                    ) AS position
-             FROM scores target
-             JOIN players target_player ON target_player.id = target.player_id
-             JOIN seasons s ON s.id = target.season_id
-             LEFT JOIN (
-                 SELECT player_id, AVG(response_time_ms) AS avg_response_time_ms
-                 FROM answer_logs
-                 WHERE season_id = ? AND response_time_ms IS NOT NULL
-                 GROUP BY player_id
-             ) target_time ON target_time.player_id = target.player_id
-             WHERE target.player_id = ? AND target.season_id = ?`,
-            [seasonId, seasonId, playerId, seasonId]
-        );
-
-        const row = rows[0];
-        if (row && (best === null || row.position < best.position)) {
-            best = row;
+    let previousSeasonId = null;
+    let position = 0;
+    for (const row of rows) {
+        if (row.season_id !== previousSeasonId) {
+            previousSeasonId = row.season_id;
+            position = 0;
+        }
+        position += 1;
+        if (Number(row.player_id) === Number(playerId) && (best === null || position < best.position)) {
+            best = {
+                position,
+                season_name: row.season_name
+            };
         }
     }
 

@@ -12,6 +12,7 @@
     </h2>
 
     <form method="POST" enctype="multipart/form-data" action="<%= question ? `/admin/questions/${question.id}/edit` : '/admin/questions/new' %>" class="form-grid">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <div class="full">
         <label>Pregunta</label>
         <textarea name="question_text" rows="2" required><%= question ? question.question_text : '' %></textarea>

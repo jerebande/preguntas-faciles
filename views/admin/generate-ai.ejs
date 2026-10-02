@@ -15,6 +15,7 @@
     </p>
 
     <form method="POST" action="/admin/questions/generate-ai" class="form-grid" style="margin: 24px 0 36px;">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <div class="full">
         <label>Tema (opcional)</label>
         <input type="text" name="topic" placeholder="Ej: fútbol argentino, historia, cine">

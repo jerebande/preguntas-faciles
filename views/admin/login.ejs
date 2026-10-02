@@ -9,6 +9,7 @@
       <img src="/img/logo.png" alt="preguntas.faciles" class="login-logo">
       <h1>Panel de administrador</h1>
       <form method="POST" action="/admin/login">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <input type="text" name="username" placeholder="Usuario" required autocomplete="username">
         <input type="password" name="password" placeholder="Contraseña" required autocomplete="current-password">
         <div class="error-msg"><%= error || '' %></div>

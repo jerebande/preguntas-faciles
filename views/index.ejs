@@ -2,8 +2,117 @@
 <html lang="es">
 <head>
   <%- include('partials/head', { title: 'preguntas.faciles — Jugá' }) %>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&display=swap">
 </head>
-<body class="home-page">
+<body class="home-page<%= player ? '' : ' home-guest' %>">
+  <% if (!player) { %>
+  <div class="landing">
+    <header class="landing-header">
+      <div class="landing-inner landing-header-row">
+        <div class="brand" id="brandTrigger">
+          <img src="/img/preguntas-faciles-logo.png" alt="preguntas.faciles" class="mark brand-logo">
+        </div>
+        <nav class="landing-nav" aria-label="Principal">
+          <a href="/" class="nav-link active nav-home" aria-current="page">Inicio</a>
+          <a href="/ranking" class="nav-link">Ranking</a>
+          <a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=contact%40tomimunaretto.com&amp;su=Quiero%20publicitar%20mi%20marca%20en%20Preguntas%20F%C3%A1ciles" class="nav-cta" target="_blank" rel="noopener noreferrer">Publicitá<span class="hide-sm"> tu marca</span></a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="landing-inner hero">
+      <div class="hero-left">
+        <div class="hero-copy">
+          <div class="gate-kicker">Trivia semanal · sin emails</div>
+          <h1>Entrá a jugar y subí en el ranking.</h1>
+          <p class="hero-sub">Jugá, sumá puntos y demostrá cuánto sabés.</p>
+        </div>
+
+        <aside class="hero-prize" aria-label="Sorteo de fin de año">
+          <svg class="trophy" viewBox="0 0 120 120" aria-hidden="true">
+            <defs>
+              <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#fff2a6"/>
+                <stop offset=".45" stop-color="#f4b400"/>
+                <stop offset="1" stop-color="#9a6200"/>
+              </linearGradient>
+              <linearGradient id="goldSide" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#b87a05"/>
+                <stop offset=".5" stop-color="#ffe27a"/>
+                <stop offset="1" stop-color="#b87a05"/>
+              </linearGradient>
+            </defs>
+            <path d="M30 24H14c0 22 9 36 26 40" fill="none" stroke="url(#goldSide)" stroke-width="7" stroke-linecap="round"/>
+            <path d="M90 24h16c0 22-9 36-26 40" fill="none" stroke="url(#goldSide)" stroke-width="7" stroke-linecap="round"/>
+            <path d="M28 12h64v26c0 22-14 36-32 36S28 60 28 38z" fill="url(#gold)"/>
+            <path d="M38 18h8v34c-6-5-8-12-8-20z" fill="#fff" opacity=".35"/>
+            <rect x="54" y="72" width="12" height="16" fill="url(#goldSide)"/>
+            <path d="M44 88h32l5 10H39z" fill="url(#gold)"/>
+            <rect x="34" y="98" width="52" height="12" rx="3" fill="url(#goldSide)"/>
+          </svg>
+          <div class="prize-text">
+            <strong>Sorteo de fin de año</strong>
+            <strong class="prize-date">31 de diciembre</strong>
+            <span>Los 10 primeros del ranking participarán del sorteo.</span>
+          </div>
+        </aside>
+        <p class="prize-note">Premio y bases: próximamente.</p>
+      </div>
+
+      <div class="hero-photo">
+        <img src="/img/tomi.webp" alt="Tomi Munaretto" width="637" height="1000" fetchpriority="high">
+      </div>
+
+      <div class="hero-auth">
+        <div class="auth-card">
+          <div class="auth-tabs" role="tablist">
+            <button type="button" class="auth-tab active" data-auth-mode="login" role="tab">Iniciar sesión</button>
+            <button type="button" class="auth-tab" data-auth-mode="register" role="tab">Registrarse</button>
+          </div>
+          <form id="authForm">
+            <input type="text" id="nickname" placeholder="Tu nickname" maxlength="20" autocomplete="username" required>
+            <input type="password" id="password" placeholder="Tu contraseña" minlength="6" maxlength="72" autocomplete="current-password" required>
+            <p class="auth-hint" id="passwordHint">Tu cuenta, tus puntos y tu perfil quedan guardados.</p>
+            <altcha-widget challengeurl="/api/captcha-challenge" hidefooter></altcha-widget>
+            <div class="error-msg" id="registerError"></div>
+            <button type="submit" class="btn btn-primary" id="authSubmit">Entrar a jugar</button>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <section class="brand-band" aria-labelledby="bandTitle">
+      <div class="landing-inner brand-band-row">
+        <div class="band-pitch">
+          <h2 id="bandTitle">Tu marca también<br><span>puede ser parte.</span></h2>
+          <p>Promocioná tu producto o servicio en Preguntas Fáciles.</p>
+          <a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=contact%40tomimunaretto.com&amp;su=Quiero%20publicitar%20mi%20marca%20en%20Preguntas%20F%C3%A1ciles" class="band-btn" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 7 8.5 6.5L20.5 7"/></svg>
+            Escribime por mail
+          </a>
+          <small>Pedí una propuesta a medida</small>
+        </div>
+        <div class="band-brands">
+          <p>Marcas que ya confiaron en Preguntas Fáciles</p>
+          <ul class="brand-wall">
+            <li><img src="/img/zorro.png" alt="Zorro" data-b="zorro" loading="lazy"></li>
+            <li><img src="/img/greencrops.png" alt="Green Crops" data-b="greencrops" loading="lazy"></li>
+            <li><img src="/img/prex.png" alt="Prex" data-b="prex" loading="lazy"></li>
+            <li><img src="/img/dove.png" alt="Dove Men+Care" data-b="dove" loading="lazy"></li>
+            <li><img src="/img/havanna.png" alt="Havanna" data-b="havanna" loading="lazy"></li>
+            <li><img src="/img/smack.png" alt="Smack" data-b="smack" loading="lazy"></li>
+            <li><img src="/img/tada.png" alt="Ta Da" data-b="tada" loading="lazy"></li>
+            <li><img src="/img/cacharel.png" alt="Cacharel Paris" data-b="cacharel" loading="lazy"></li>
+            <li><img src="/img/sommier.png" alt="Sommier Center" data-b="sommier" loading="lazy"></li>
+            <li><img src="/img/macro.png" alt="Banco Macro" data-b="macro" loading="lazy"></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </div>
+  <% } else { %>
   <div class="app">
     <div class="topbar">
       <div class="brand" id="brandTrigger">
@@ -27,27 +136,6 @@
       </div>
     </div>
 
-    <% if (!player) { %>
-      <div class="gate">
-        <div class="gate-kicker">Trivia semanal · sin emails</div>
-        <h1>Entrá a jugar y subí en el ranking.</h1>
-        <p>Usá tu nickname y una contraseña. Tu cuenta, tus puntos y tu perfil quedan guardados.</p>
-        <div class="auth-card">
-          <div class="auth-tabs" role="tablist">
-            <button type="button" class="auth-tab active" data-auth-mode="login" role="tab">Iniciar sesión</button>
-            <button type="button" class="auth-tab" data-auth-mode="register" role="tab">Registrarse</button>
-          </div>
-          <form id="authForm">
-            <input type="text" id="nickname" placeholder="Tu nickname" maxlength="20" autocomplete="username" required>
-            <input type="password" id="password" placeholder="Tu contraseña" minlength="6" maxlength="72" autocomplete="current-password" required>
-            <p class="auth-hint" id="passwordHint">Ingresá tu contraseña para continuar.</p>
-            <altcha-widget challengeurl="/api/captcha-challenge" hidefooter></altcha-widget>
-            <div class="error-msg" id="registerError"></div>
-            <button type="submit" class="btn btn-primary" id="authSubmit">Entrar a jugar</button>
-          </form>
-        </div>
-      </div>
-    <% } else { %>
       <section class="profile-gate" id="profileGate">
         <div class="profile-heading">
           <span class="gate-kicker">Espacio de juego</span>
@@ -71,8 +159,8 @@
           <button type="button" class="logout-link" id="logoutButton">Cerrar sesión</button>
         </div>
       </section>
-    <% } %>
   </div>
+  <% } %>
 
   <% if (player) { %>
     <%- include('partials/bottom-nav', { active: 'jugar' }) %>

@@ -3,6 +3,7 @@ const router = express.Router();
 const { requireAdmin } = require("../middleware/auth");
 const upload = require("../middleware/upload");
 const { authLimiter } = require("../middleware/rateLimit");
+const { issueCsrfToken, verifyCsrfToken } = require("../middleware/csrf");
 
 const authController = require("../controllers/admin/authController");
 const dashboardController = require("../controllers/admin/dashboardController");
@@ -22,10 +23,12 @@ function handleImageUpload(req, res, next) {
 	});
 }
 
+router.use(issueCsrfToken);
+
 // Login (sin proteger)
 router.get("/login", authController.showLogin);
-router.post("/login", authLimiter, authController.login);
-router.post("/logout", authController.logout);
+router.post("/login", authLimiter, verifyCsrfToken, authController.login);
+router.post("/logout", verifyCsrfToken, authController.logout);
 
 // A partir de acá, todo requiere sesión de administrador.
 router.use(requireAdmin);
@@ -33,22 +36,22 @@ router.use(requireAdmin);
 router.get("/", dashboardController.showDashboard);
 
 router.get("/questions", questionsController.list);
-router.post("/questions/set-active", questionsController.setAllActive);
+router.post("/questions/set-active", verifyCsrfToken, questionsController.setAllActive);
 router.get("/questions/new", questionsController.showCreateForm);
-router.post("/questions/new", handleImageUpload, questionsController.create);
+router.post("/questions/new", handleImageUpload, verifyCsrfToken, questionsController.create);
 router.get("/questions/generate-ai", aiController.showForm);
-router.post("/questions/generate-ai", aiController.generate);
+router.post("/questions/generate-ai", verifyCsrfToken, aiController.generate);
 router.get("/questions/:id/edit", questionsController.showEditForm);
-router.post("/questions/:id/edit", handleImageUpload, questionsController.update);
-router.post("/questions/:id/toggle", questionsController.toggleActive);
-router.post("/questions/:id/delete", questionsController.remove);
+router.post("/questions/:id/edit", handleImageUpload, verifyCsrfToken, questionsController.update);
+router.post("/questions/:id/toggle", verifyCsrfToken, questionsController.toggleActive);
+router.post("/questions/:id/delete", verifyCsrfToken, questionsController.remove);
 
 router.get("/seasons", seasonsController.list);
-router.post("/seasons/new", seasonsController.startNew);
-router.post("/seasons/advance-current", seasonsController.advanceCurrent);
+router.post("/seasons/new", verifyCsrfToken, seasonsController.startNew);
+router.post("/seasons/advance-current", verifyCsrfToken, seasonsController.advanceCurrent);
 
 router.get("/stats", statsController.show);
 router.get("/settings", settingsController.show);
-router.post("/settings", settingsController.update);
+router.post("/settings", verifyCsrfToken, settingsController.update);
 
 module.exports = router;

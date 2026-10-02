@@ -17,6 +17,7 @@
     <% } %>
 
     <form method="POST" action="/admin/settings" class="form-grid" style="max-width: 520px;">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <div class="full">
         <label for="questionTimeSeconds">Tiempo por pregunta (segundos)</label>
         <input id="questionTimeSeconds" type="number" name="question_time_seconds" value="<%= questionTimeSeconds %>" min="3" max="60" required>
