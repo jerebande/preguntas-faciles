@@ -12,6 +12,16 @@ async function findByNickname(nickname) {
     return rows[0] || null;
 }
 
+async function findByEmail(email) {
+    const [rows] = await db.query("SELECT id FROM players WHERE email = ?", [email]);
+    return rows[0] || null;
+}
+
+async function findByPhone(phone) {
+    const [rows] = await db.query("SELECT id FROM players WHERE phone = ?", [phone]);
+    return rows[0] || null;
+}
+
 async function create(nickname, deviceToken, passwordHash, email = null, phone = null) {
     const [result] = await db.query(
         "INSERT INTO players (nickname, device_token, password_hash, email, phone) VALUES (?, ?, ?, ?, ?)",
@@ -103,6 +113,60 @@ async function ensurePhoneColumn() {
 async function ensureContactColumns() {
     await ensureEmailColumn();
     await ensurePhoneColumn();
+
+    const phoneKey = "REPLACE(REPLACE(REPLACE(REPLACE(TRIM(phone), ' ', ''), '-', ''), '(', ''), ')', '')";
+    const [[emailDuplicates]] = await db.query(
+        `SELECT COUNT(*) AS total
+         FROM (
+             SELECT LOWER(TRIM(email))
+             FROM players
+             WHERE email IS NOT NULL AND TRIM(email) <> ''
+             GROUP BY LOWER(TRIM(email))
+             HAVING COUNT(*) > 1
+         ) AS duplicate_emails`
+    );
+    const [[phoneDuplicates]] = await db.query(
+        `SELECT COUNT(*) AS total
+         FROM (
+             SELECT ${phoneKey}
+             FROM players
+             WHERE phone IS NOT NULL AND TRIM(phone) <> ''
+             GROUP BY ${phoneKey}
+             HAVING COUNT(*) > 1
+         ) AS duplicate_phones`
+    );
+
+    if (emailDuplicates.total || phoneDuplicates.total) {
+        throw new Error(
+            `No se pudieron activar los contactos únicos: hay ${emailDuplicates.total} emails y ${phoneDuplicates.total} teléfonos duplicados en players.`
+        );
+    }
+
+    await db.query(
+        "UPDATE players SET email = NULLIF(LOWER(TRIM(email)), ''), phone = NULLIF(" + phoneKey + ", '')"
+    );
+
+    const [[emailIndex]] = await db.query(
+        `SELECT COUNT(*) AS total
+         FROM information_schema.statistics
+         WHERE table_schema = DATABASE()
+           AND table_name = 'players'
+           AND index_name = 'uq_players_email'`
+    );
+    if (!emailIndex.total) {
+        await db.query("ALTER TABLE players ADD UNIQUE INDEX uq_players_email (email)");
+    }
+
+    const [[phoneIndex]] = await db.query(
+        `SELECT COUNT(*) AS total
+         FROM information_schema.statistics
+         WHERE table_schema = DATABASE()
+           AND table_name = 'players'
+           AND index_name = 'uq_players_phone'`
+    );
+    if (!phoneIndex.total) {
+        await db.query("ALTER TABLE players ADD UNIQUE INDEX uq_players_phone (phone)");
+    }
 }
 
 async function countAll() {
@@ -114,6 +178,8 @@ module.exports = {
     NICKNAME_RE,
     findById,
     findByNickname,
+    findByEmail,
+    findByPhone,
     create,
     claimAccount,
     updateAvatar,

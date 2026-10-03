@@ -12,10 +12,10 @@ async function register(req, res, next) {
             return res.status(400).json({ error: "No pudimos verificar que sos una persona. Recargá la página e intentá de nuevo." });
         }
 
-        const nickname = (req.body.nickname || "").trim();
+        const nickname = (typeof req.body.nickname === "string" ? req.body.nickname : "").trim();
         const password = req.body.password || "";
-        const email = (req.body.email || "").trim();
-        const phone = (req.body.phone || "").trim();
+        const email = (typeof req.body.email === "string" ? req.body.email : "").trim().toLowerCase();
+        const phone = (typeof req.body.phone === "string" ? req.body.phone : "").trim();
         if (!playerModel.NICKNAME_RE.test(nickname)) {
             return res.status(400).json({ error: "El nickname debe tener entre 3 y 20 caracteres (letras, números o guión bajo)." });
         }
@@ -28,21 +28,37 @@ async function register(req, res, next) {
             return res.status(400).json({ error: "El email no tiene un formato válido." });
         }
 
-        if (phone && !/^[+()0-9\s-]{7,30}$/.test(phone)) {
+        if (phone && !/^[+()0-9 -]{7,30}$/.test(phone)) {
             return res.status(400).json({ error: "El teléfono no tiene un formato válido." });
         }
 
         const normalizedEmail = email || null;
-        const normalizedPhone = phone || null;
+        const normalizedPhone = phone ? phone.replace(/[()\s-]/g, "") : null;
 
         const existing = await playerModel.findByNickname(nickname);
         if (existing) {
             return res.status(409).json({ error: "Ese nickname ya está en uso. Probá con otro." });
         }
 
+        if (normalizedEmail && await playerModel.findByEmail(normalizedEmail)) {
+            return res.status(409).json({ error: "Ese email ya está registrado. Usá otro." });
+        }
+
+        if (normalizedPhone && await playerModel.findByPhone(normalizedPhone)) {
+            return res.status(409).json({ error: "Ese teléfono ya está registrado. Usá otro." });
+        }
+
         const deviceToken = crypto.randomBytes(16).toString("hex");
         const passwordHash = await bcrypt.hash(password, 10);
-        const player = await playerModel.create(nickname, deviceToken, passwordHash, normalizedEmail, normalizedPhone);
+        let player;
+        try {
+            player = await playerModel.create(nickname, deviceToken, passwordHash, normalizedEmail, normalizedPhone);
+        } catch (err) {
+            if (err.code === "ER_DUP_ENTRY") {
+                return res.status(409).json({ error: "Ese nickname, email o teléfono ya está registrado." });
+            }
+            throw err;
+        }
 
         req.session.playerId = player.id;
         req.session.gameQuestionsAnswered = 0;

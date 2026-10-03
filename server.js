@@ -100,8 +100,7 @@ ensureAdmin()
     .then(() => answerLogModel.ensureResponseTimeColumn())
     .then(() => questionModel.ensureImageUrlColumn())
     .then(() => settingsModel.ensureTable())
-    .catch((err) => console.error("No se pudo crear el admin inicial:", err.message))
-    .finally(() => {
+    .then(() => {
         const server = app.listen(PORT, () => console.log(`preguntas.faciles corriendo en http://localhost:${PORT}`));
         server.on("error", (err) => {
             if (err.code === "EADDRINUSE") {
@@ -112,4 +111,8 @@ ensureAdmin()
             console.error("No se pudo iniciar el servidor:", err.message);
             process.exitCode = 1;
         });
+    })
+    .catch((err) => {
+        console.error("No se pudo inicializar la aplicación:", err.message);
+        process.exitCode = 1;
     });

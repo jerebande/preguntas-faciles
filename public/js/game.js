@@ -24,25 +24,6 @@ const resultSounds = {
   wrong: incorrectSound,
   timeout: incorrectSound
 };
-const adCatalog = [
-  { brand: 'Zorro', copy: 'La mejor entrega para cada momento del día.', accent: '#F4E94C' },
-  { brand: 'Smack', copy: 'Sabor que se siente desde el primer bocado.', accent: '#3B63F5' },
-  { brand: 'Dove', copy: 'Cuidado para la rutina diaria, con estilo.', accent: '#CFE3FF' },
-  { brand: 'Havanna', copy: 'Un clásico que siempre vuelve a sorprender.', accent: '#D9B27A' },
-  { brand: 'Macro', copy: 'Más posibilidades para tus próximos objetivos.', accent: '#9BDBFF' }
-];
-
-function rotateAdSlot() {
-  const slot = document.querySelector('.ad-slot');
-  if (!slot) return;
-  const ad = adCatalog[Math.floor(Math.random() * adCatalog.length)];
-  slot.style.background = `linear-gradient(135deg, ${ad.accent}55, rgba(255,255,255,.8))`;
-  slot.innerHTML = `
-    <span class="ad-brand">${ad.brand}</span>
-    <span class="ad-copy">${ad.copy}</span>
-  `;
-}
-
 setupAvatarPicker();
 setupProfile();
 
@@ -113,9 +94,6 @@ if (authForm) {
 }
 
 if (gameArea) {
-  const gameAreaObserver = new MutationObserver(() => rotateAdSlot());
-  gameAreaObserver.observe(gameArea, { childList: true, subtree: true });
-  rotateAdSlot();
   loadMe();
   if (!continueGame) loadQuestion();
 }
