@@ -1,0 +1,10 @@
+<svg width="220" height="90" viewBox="0 0 220 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(0 2)">
+    <circle cx="38" cy="42" r="22" fill="#A7A7A7"/>
+    <path d="M23 42C29 29 38 22 49 22C56 22 61 23 65 27L56 32C53 30 51 29 47 29C40 29 34 33 29 40L23 42Z" fill="#A7A7A7"/>
+    <path d="M32 57C39 49 48 45 58 45H77C84 45 90 48 95 54L98 57H31L32 57Z" fill="#A7A7A7"/>
+    <path d="M31 61H96C101 61 105 64 105 69V70H67C62 70 57 66 57 61C57 60 56 60 55 60H31V61Z" fill="#A7A7A7"/>
+    <path d="M25 39C31 26 42 19 56 19C67 19 75 22 82 29L75 32C69 28 64 26 57 26C48 26 40 30 35 37L25 39Z" fill="#A7A7A7"/>
+  </g>
+  <text x="113" y="58" fill="#A7A7A7" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" letter-spacing="-1">DIDI</text>
+</svg>

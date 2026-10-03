@@ -24,22 +24,56 @@ const resultSounds = {
   wrong: incorrectSound,
   timeout: incorrectSound
 };
+const adCatalog = [
+  { brand: 'Zorro', copy: 'La mejor entrega para cada momento del día.', accent: '#F4E94C' },
+  { brand: 'Smack', copy: 'Sabor que se siente desde el primer bocado.', accent: '#3B63F5' },
+  { brand: 'Dove', copy: 'Cuidado para la rutina diaria, con estilo.', accent: '#CFE3FF' },
+  { brand: 'Havanna', copy: 'Un clásico que siempre vuelve a sorprender.', accent: '#D9B27A' },
+  { brand: 'Macro', copy: 'Más posibilidades para tus próximos objetivos.', accent: '#9BDBFF' }
+];
+
+function rotateAdSlot() {
+  const slot = document.querySelector('.ad-slot');
+  if (!slot) return;
+  const ad = adCatalog[Math.floor(Math.random() * adCatalog.length)];
+  slot.style.background = `linear-gradient(135deg, ${ad.accent}55, rgba(255,255,255,.8))`;
+  slot.innerHTML = `
+    <span class="ad-brand">${ad.brand}</span>
+    <span class="ad-copy">${ad.copy}</span>
+  `;
+}
 
 setupAvatarPicker();
 setupProfile();
 
 let authMode = 'login';
 
+function syncAuthModeUI() {
+  const submit = document.getElementById('authSubmit');
+  const password = document.getElementById('password');
+  const hint = document.getElementById('passwordHint');
+  const contactFields = document.getElementById('authContactFields');
+  const isRegister = authMode === 'register';
+
+  if (submit) submit.textContent = isRegister ? 'Crear mi cuenta' : 'Entrar a jugar';
+  if (password) password.autocomplete = isRegister ? 'new-password' : 'current-password';
+  if (contactFields) {
+    contactFields.hidden = !isRegister;
+    contactFields.style.display = isRegister ? 'grid' : 'none';
+    contactFields.setAttribute('aria-hidden', String(!isRegister));
+  }
+  if (hint) hint.textContent = isRegister
+    ? 'Mínimo 6 caracteres. Podés agregar email o teléfono, pero no es obligatorio.'
+    : 'Ingresá tu nickname y contraseña para continuar.';
+}
+
+syncAuthModeUI();
+
 document.querySelectorAll('[data-auth-mode]').forEach(tab => {
   tab.addEventListener('click', () => {
     authMode = tab.dataset.authMode;
     document.querySelectorAll('[data-auth-mode]').forEach(item => item.classList.toggle('active', item === tab));
-    const submit = document.getElementById('authSubmit');
-    const password = document.getElementById('password');
-    const hint = document.getElementById('passwordHint');
-    if (submit) submit.textContent = authMode === 'login' ? 'Entrar a jugar' : 'Crear mi cuenta';
-    if (password) password.autocomplete = authMode === 'login' ? 'current-password' : 'new-password';
-    if (hint) hint.textContent = authMode === 'login' ? 'Ingresá tu contraseña para continuar.' : 'Mínimo 6 caracteres. No necesitás email.';
+    syncAuthModeUI();
   });
 });
 
@@ -48,6 +82,8 @@ if (authForm) {
     e.preventDefault();
     const nickname = document.getElementById('nickname').value.trim();
     const password = document.getElementById('password').value;
+    const email = authMode === 'register' ? document.getElementById('email')?.value.trim() || '' : '';
+    const phone = authMode === 'register' ? document.getElementById('phone')?.value.trim() || '' : '';
     const widget = document.querySelector('altcha-widget');
     const altcha = widget?.value || document.querySelector('input[name="altcha"]')?.value || '';
     const errorEl = document.getElementById('registerError');
@@ -62,7 +98,7 @@ if (authForm) {
       const res = await fetch(authMode === 'login' ? '/api/login' : '/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nickname, password, altcha })
+        body: JSON.stringify({ nickname, password, email, phone, altcha })
       });
       const data = await res.json();
       if (!res.ok) {
@@ -77,6 +113,9 @@ if (authForm) {
 }
 
 if (gameArea) {
+  const gameAreaObserver = new MutationObserver(() => rotateAdSlot());
+  gameAreaObserver.observe(gameArea, { childList: true, subtree: true });
+  rotateAdSlot();
   loadMe();
   if (!continueGame) loadQuestion();
 }

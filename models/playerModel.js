@@ -12,10 +12,10 @@ async function findByNickname(nickname) {
     return rows[0] || null;
 }
 
-async function create(nickname, deviceToken, passwordHash) {
+async function create(nickname, deviceToken, passwordHash, email = null, phone = null) {
     const [result] = await db.query(
-        "INSERT INTO players (nickname, device_token, password_hash) VALUES (?, ?, ?)",
-        [nickname, deviceToken, passwordHash]
+        "INSERT INTO players (nickname, device_token, password_hash, email, phone) VALUES (?, ?, ?, ?, ?)",
+        [nickname, deviceToken, passwordHash, email, phone]
     );
     return findById(result.insertId);
 }
@@ -72,6 +72,39 @@ async function ensurePasswordColumn() {
     }
 }
 
+async function ensureEmailColumn() {
+    const [[column]] = await db.query(
+        `SELECT COUNT(*) AS total
+         FROM information_schema.columns
+         WHERE table_schema = DATABASE()
+           AND table_name = 'players'
+           AND column_name = 'email'`
+    );
+
+    if (!column.total) {
+        await db.query("ALTER TABLE players ADD COLUMN email VARCHAR(255) NULL AFTER password_hash");
+    }
+}
+
+async function ensurePhoneColumn() {
+    const [[column]] = await db.query(
+        `SELECT COUNT(*) AS total
+         FROM information_schema.columns
+         WHERE table_schema = DATABASE()
+           AND table_name = 'players'
+           AND column_name = 'phone'`
+    );
+
+    if (!column.total) {
+        await db.query("ALTER TABLE players ADD COLUMN phone VARCHAR(50) NULL AFTER email");
+    }
+}
+
+async function ensureContactColumns() {
+    await ensureEmailColumn();
+    await ensurePhoneColumn();
+}
+
 async function countAll() {
     const [[{ total }]] = await db.query("SELECT COUNT(*) AS total FROM players");
     return total;
@@ -87,5 +120,8 @@ module.exports = {
     updateNickname,
     ensureAvatarColumn,
     ensurePasswordColumn,
+    ensureEmailColumn,
+    ensurePhoneColumn,
+    ensureContactColumns,
     countAll
 };

@@ -95,6 +95,7 @@ const PORT = process.env.PORT || 3000;
 ensureAdmin()
     .then(() => playerModel.ensureAvatarColumn())
     .then(() => playerModel.ensurePasswordColumn())
+    .then(() => playerModel.ensureContactColumns())
     .then(() => answerLogModel.ensureSelectedOptionNullable())
     .then(() => answerLogModel.ensureResponseTimeColumn())
     .then(() => questionModel.ensureImageUrlColumn())

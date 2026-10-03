@@ -14,6 +14,8 @@ async function register(req, res, next) {
 
         const nickname = (req.body.nickname || "").trim();
         const password = req.body.password || "";
+        const email = (req.body.email || "").trim();
+        const phone = (req.body.phone || "").trim();
         if (!playerModel.NICKNAME_RE.test(nickname)) {
             return res.status(400).json({ error: "El nickname debe tener entre 3 y 20 caracteres (letras, números o guión bajo)." });
         }
@@ -22,6 +24,17 @@ async function register(req, res, next) {
             return res.status(400).json({ error: "La contraseña debe tener entre 6 y 72 caracteres." });
         }
 
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            return res.status(400).json({ error: "El email no tiene un formato válido." });
+        }
+
+        if (phone && !/^[+()0-9\s-]{7,30}$/.test(phone)) {
+            return res.status(400).json({ error: "El teléfono no tiene un formato válido." });
+        }
+
+        const normalizedEmail = email || null;
+        const normalizedPhone = phone || null;
+
         const existing = await playerModel.findByNickname(nickname);
         if (existing) {
             return res.status(409).json({ error: "Ese nickname ya está en uso. Probá con otro." });
@@ -29,7 +42,7 @@ async function register(req, res, next) {
 
         const deviceToken = crypto.randomBytes(16).toString("hex");
         const passwordHash = await bcrypt.hash(password, 10);
-        const player = await playerModel.create(nickname, deviceToken, passwordHash);
+        const player = await playerModel.create(nickname, deviceToken, passwordHash, normalizedEmail, normalizedPhone);
 
         req.session.playerId = player.id;
         req.session.gameQuestionsAnswered = 0;

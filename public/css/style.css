@@ -92,8 +92,8 @@ a { color: inherit; text-decoration: none; }
 /* logo real (imagen) en vez del span de texto "¿?" */
 .brand .mark,
 img.mark {
-  width: 36px;
-  height: 36px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--black);
@@ -197,7 +197,7 @@ span.mark {
 }
 
 /* ---------- Formularios ---------- */
-input[type="text"], input[type="password"], input[type="number"], textarea, select {
+input[type="text"], input[type="password"], input[type="email"], input[type="tel"], input[type="number"], textarea, select {
   background: var(--gray-deep);
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -266,6 +266,8 @@ input:focus, textarea:focus, select:focus {
 }
 .auth-tab.active { background: rgba(255,201,77,.28); color: var(--black); }
 .auth-card form { display: flex; flex-direction: column; gap: 10px; padding: 10px; }
+.auth-contact-fields { display: none; gap: 10px; }
+.auth-contact-fields:not([hidden]) { display: grid; }
 .auth-hint { margin: -2px 2px 0; color: var(--gray); font-size: 11px; text-align: left; }
 
 /* ---------- Perfil ---------- */
@@ -669,14 +671,41 @@ label.image-action {
 
 /* ---------- Ad slot ---------- */
 .ad-slot {
+  display: grid;
+  place-items: center;
+  gap: 6px;
   border: 1px dashed var(--line);
-  border-radius: 16px;
-  padding: 18px;
+  border-radius: 18px;
+  padding: 18px 16px;
   text-align: center;
-  color: var(--gray);
+  color: var(--black);
   font-size: 12px;
   width: min(100%, 420px);
   margin: 20px auto 4px;
+  background: linear-gradient(135deg, rgba(255, 201, 77, .18), rgba(59, 99, 245, .08));
+  transition: background .25s ease, transform .25s ease;
+}
+
+.ad-slot .ad-brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 86px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(27, 23, 18, .9);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.ad-slot .ad-copy {
+  font-weight: 700;
+  color: var(--gray);
+  line-height: 1.4;
 }
 
 /* ---------- Admin ---------- */
