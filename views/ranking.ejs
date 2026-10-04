@@ -16,9 +16,26 @@
       </nav>
     </div>
 
-    <p style="color: var(--gray); font-size: 13px; margin-top: -12px; margin-bottom: 20px;">
+    <p class="stats-season">
       <%= season.name %> · se reinicia cada <%= season.type %>
     </p>
+
+    <section class="year-end-draw" aria-labelledby="year-end-draw-title">
+      <div class="year-end-draw__icon" aria-hidden="true">
+        <svg viewBox="0 0 96 96" focusable="false">
+          <path d="M25 18H12v10c0 14 9 23 23 25M71 18h13v10c0 14-9 23-23 25" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M25 12h46v25c0 15-10 26-23 26S25 52 25 37V12Z" fill="currentColor"/>
+          <path d="M43 63h10v14H43zM32 77h32v8H32z" fill="currentColor"/>
+          <path d="M28 86h40v6H28z" fill="currentColor"/>
+          <path d="M34 19v17" fill="none" stroke="#FFF1A6" stroke-width="5" stroke-linecap="round" opacity=".8"/>
+        </svg>
+      </div>
+      <div class="year-end-draw__content">
+        <h2 id="year-end-draw-title">Sorteo de fin de año</h2>
+        <p class="year-end-draw__date">31 de diciembre</p>
+        <p class="year-end-draw__description">Los 10 primeros del ranking participarán del sorteo.</p>
+      </div>
+    </section>
 
     <% if (previousSeason && previousWinner) { %>
       <section class="previous-winner" aria-label="Ganador de la temporada anterior">
