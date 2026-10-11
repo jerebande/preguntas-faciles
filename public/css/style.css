@@ -266,8 +266,19 @@ input:focus, textarea:focus, select:focus {
 }
 .auth-tab.active { background: rgba(255,201,77,.28); color: var(--black); }
 .auth-card form { display: flex; flex-direction: column; gap: 10px; padding: 10px; }
-.auth-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.auth-actions .btn { width: 100%; min-height: 48px; padding: 12px 8px; text-align: center; }
+.auth-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; align-items: stretch; }
+.auth-actions .btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 54px;
+  min-height: 54px;
+  margin: 0;
+  padding: 0 8px;
+  line-height: 1.2;
+  text-align: center;
+}
 .auth-contact-fields { display: none; gap: 10px; }
 .auth-contact-fields:not([hidden]) { display: grid; }
 .auth-hint { margin: -2px 2px 0; color: var(--gray); font-size: 11px; text-align: left; }
@@ -2076,7 +2087,7 @@ img.mark {
 .hero-auth .auth-card form { gap: 12px; padding: 12px; }
 .hero-auth .auth-hint { text-align: center; margin: 2px 0 2px; font-size: 12px; }
 .hero-auth .btn-primary { padding: 17px 20px; font-size: 17px; font-weight: 600; font-family: var(--font-body); }
-.hero-auth .auth-actions .btn { min-height: 54px; padding: 12px 8px; font-size: 14px; }
+.hero-auth .auth-actions .btn { font-size: 14px; }
 .practice-notice {
   margin: -16px 0 22px;
   padding: 12px 15px;
