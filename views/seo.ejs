@@ -1,0 +1,39 @@
+<%
+  const siteUrl = (process.env.SITE_URL || 'https://www.preguntasfaciles.com').replace(/\/$/, '');
+  const seoRobots = locals.seoRobots || 'index, follow';
+  const indexable = !/noindex/i.test(seoRobots);
+  const seoTitle = locals.seoTitle || 'preguntas.faciles — Quiz de cultura general con Tomi Munaretto';
+  const seoDescription = locals.seoDescription || 'Quiz online de preguntas de cultura general con Tomi Munaretto: jugá, sumá puntos, subí en el ranking y participá del sorteo de fin de año.';
+  const seoKeywords = locals.seoKeywords || 'Tomi Munaretto, preguntas cultura general, quiz, quiz de cultura general, preguntas y respuestas, preguntas fáciles, preguntas.faciles, trivia online, sorteo de fin de año';
+  const canonical = siteUrl + (locals.seoPath || '/');
+  const seoImage = siteUrl + (locals.seoImage || '/img/banner.jpg');
+%>
+<meta name="robots" content="<%= seoRobots %>">
+<% if (indexable) { %>
+<meta name="description" content="<%= seoDescription %>">
+<meta name="keywords" content="<%= seoKeywords %>">
+<link rel="canonical" href="<%= canonical %>">
+
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_AR">
+<meta property="og:site_name" content="preguntas.faciles">
+<meta property="og:title" content="<%= seoTitle %>">
+<meta property="og:description" content="<%= seoDescription %>">
+<meta property="og:url" content="<%= canonical %>">
+<meta property="og:image" content="<%= seoImage %>">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<%= seoTitle %>">
+<meta name="twitter:description" content="<%= seoDescription %>">
+<meta name="twitter:image" content="<%= seoImage %>">
+<% if (locals.seoSchema === 'home') {
+  const schema = [
+    { '@context': 'https://schema.org', '@type': 'WebSite', name: 'preguntas.faciles', url: siteUrl + '/', inLanguage: 'es-AR' },
+    { '@context': 'https://schema.org', '@type': 'Organization', name: 'preguntas.faciles', url: siteUrl + '/',
+      logo: siteUrl + '/img/preguntas-faciles-logo.png', sameAs: ['https://www.instagram.com/preguntas.faciles/'] },
+    { '@context': 'https://schema.org', '@type': 'Person', name: 'Tomi Munaretto', url: 'https://www.tomimunaretto.com',
+      sameAs: ['https://www.instagram.com/tomimunaretto/'] }
+  ];
+%>
+<script type="application/ld+json"><%- JSON.stringify(schema).replace(/</g, '\\u003c') %></script>
+<% } %>
+<% } %>
