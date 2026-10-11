@@ -4,6 +4,7 @@ const router = express.Router();
 const playerController = require("../controllers/api/playerController");
 const questionController = require("../controllers/api/questionController");
 const answerController = require("../controllers/api/answerController");
+const practiceController = require("../controllers/api/practiceController");
 const captchaService = require("../services/captchaService");
 const { authLimiter } = require("../middleware/rateLimit");
 
@@ -42,6 +43,8 @@ router.post("/profile", playerController.updateProfile);
 
 router.get("/question", questionController.getRandomQuestion);
 router.post("/answer", answerController.submitAnswer);
+router.get("/practice/question", practiceController.getQuestion);
+router.post("/practice/answer", practiceController.submitAnswer);
 router.post("/game/new", (req, res) => {
     if (!req.player) return res.status(401).json({ error: "Necesitás iniciar sesión para jugar." });
     req.session.gameQuestionsAnswered = 0;

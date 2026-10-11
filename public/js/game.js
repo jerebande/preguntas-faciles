@@ -13,6 +13,8 @@ const continueGame = document.getElementById('continueGame');
 const logoutButton = document.getElementById('logoutButton');
 const profileGate = document.getElementById('profileGate');
 const gameShell = document.getElementById('gameShell');
+const practiceMode = document.body.dataset.practiceMode === 'true';
+let practiceQuestionNumber = 1;
 let questionTimerId = null;
 let gameAudioContext = null;
 let activeQuestionId = null;
@@ -94,8 +96,12 @@ if (authForm) {
 }
 
 if (gameArea) {
-  loadMe();
-  if (!continueGame) loadQuestion();
+  if (practiceMode) {
+    loadQuestion();
+  } else {
+    loadMe();
+    if (!continueGame) loadQuestion();
+  }
 }
 
 async function loadMe() {
@@ -105,7 +111,7 @@ async function loadMe() {
   if (pointsLabel) pointsLabel.textContent = data.score.points;
   if (seasonLabel) seasonLabel.textContent = data.season.name;
   const playerName = document.getElementById('playerName');
-  if (playerName) playerName.textContent = data.player.nickname;
+  if (playerName) setPlayerNickname(playerName, data.player.nickname);
   updateAvatarPreview(data.player.avatarData, data.player.nickname);
 }
 
@@ -164,7 +170,7 @@ function setupProfile() {
       }
       document.getElementById('profileNickname').value = data.nickname;
       const playerName = document.getElementById('playerName');
-      if (playerName) playerName.textContent = data.nickname;
+      if (playerName) setPlayerNickname(playerName, data.nickname);
       error.textContent = 'Cambios guardados.';
       error.classList.add('success-msg');
     });
@@ -220,6 +226,11 @@ function updateAvatarPreview(avatarData, nickname) {
 
 function setAvatarStatus(message) {
   if (avatarStatus) avatarStatus.textContent = message;
+}
+
+function setPlayerNickname(element, nickname) {
+  element.textContent = nickname;
+  element.classList.toggle('rainbow-name', nickname.toLowerCase() === 'jeredev');
 }
 
 function playGameSound(type) {
@@ -308,20 +319,32 @@ async function loadQuestion() {
       <div class="question-text">Cargando pregunta...</div>
     </div>`;
 
-  const res = await fetch('/api/question');
+  const res = practiceMode
+    ? await fetch(`/api/practice/question?number=${practiceQuestionNumber}`)
+    : await fetch('/api/question');
   const data = await res.json();
   const responseReceivedAt = performance.now();
 
   if (data.done) {
-    const avgTimeHtml = (data.gameComplete && data.avgResponseTimeMs != null)
+    const avgTimeHtml = (!practiceMode && data.gameComplete && data.avgResponseTimeMs != null)
       ? `<p class="avg-time-result">Tiempo promedio de respuesta: ${(data.avgResponseTimeMs / 1000).toFixed(1)}s</p>`
+      : '';
+    const rankingHtml = (!practiceMode && data.gameComplete)
+      ? `<p class="rank-result">${data.rankingPosition
+        ? `Terminaste en el puesto <strong>#${escapeHtml(String(data.rankingPosition))}</strong> del ranking.`
+        : 'Todavía no hay una posición disponible en el ranking.'}</p>`
+      : '';
+    const practiceExitHtml = (practiceMode && data.gameComplete)
+      ? '<a class="btn btn-secondary play-again-btn" href="/">Salir de la prueba</a>'
       : '';
     gameArea.innerHTML = `
       <div class="question-card">
         <div class="done-card">
           <p>${data.message}</p>
           ${avgTimeHtml}
-          ${data.gameComplete ? '<button type="button" class="btn btn-primary play-again-btn" id="playAgain"><span aria-hidden="true">▶</span> Jugar</button>' : ''}
+          ${rankingHtml}
+          ${data.gameComplete ? `<button type="button" class="btn btn-primary play-again-btn" id="playAgain"><span aria-hidden="true">▶</span> ${practiceMode ? 'Repetir prueba' : 'Jugar'}</button>` : ''}
+          ${practiceExitHtml}
         </div>
       </div>`;
     const playAgain = document.getElementById('playAgain');
@@ -341,11 +364,17 @@ async function loadQuestion() {
     return;
   }
 
-  if (questionProgress) questionProgress.textContent = `Pregunta ${data.questionNumber} de 10`;
+  if (questionProgress) questionProgress.textContent = `Pregunta ${data.questionNumber} de ${practiceMode ? 15 : 10}`;
   renderQuestion(data.question, data.timeRemainingMs, responseReceivedAt);
 }
 
 async function startNewGame() {
+  if (practiceMode) {
+    practiceQuestionNumber = 1;
+    if (pointsLabel) pointsLabel.textContent = '0';
+    await loadQuestion();
+    return;
+  }
   const res = await fetch('/api/game/new', { method: 'POST' });
   if (!res.ok) return;
   await loadQuestion();
@@ -417,16 +446,19 @@ async function expireQuestion(questionId) {
   clearInterval(questionTimerId);
   document.querySelectorAll('.option-btn').forEach(button => button.disabled = true);
   try {
-    const res = await fetch('/api/answer', {
+    const res = await fetch(practiceMode ? '/api/practice/answer' : '/api/answer', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ questionId, selectedOption: null })
+      body: JSON.stringify(practiceMode
+        ? { questionNumber: practiceQuestionNumber, selectedOption: null }
+        : { questionId, selectedOption: null })
     });
     const data = await res.json();
     const feedback = document.getElementById('feedback');
     if (res.ok || res.status === 408) {
       playGameSound('timeout');
       if (feedback) feedback.innerHTML = '<div class="points wrong">¡Tiempo!</div>';
+      if (practiceMode) practiceQuestionNumber += 1;
       setTimeout(loadQuestion, 900);
     } else if (feedback) {
       feedback.innerHTML = `<div class="points wrong">${escapeHtml(data.error || 'No se pudo registrar la respuesta.')}</div>`;
@@ -447,10 +479,12 @@ async function submitAnswer(questionId, selectedOption) {
 
   const feedback = document.getElementById('feedback');
   try {
-    const res = await fetch('/api/answer', {
+    const res = await fetch(practiceMode ? '/api/practice/answer' : '/api/answer', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ questionId, selectedOption })
+      body: JSON.stringify(practiceMode
+        ? { questionNumber: practiceQuestionNumber, selectedOption }
+        : { questionId, selectedOption })
     });
     const data = await res.json();
     if (!res.ok) {
@@ -475,6 +509,7 @@ async function submitAnswer(questionId, selectedOption) {
       pointsLabel.textContent = parseInt(pointsLabel.textContent, 10) + data.pointsEarned;
     }
 
+    if (practiceMode) practiceQuestionNumber += 1;
     setTimeout(loadQuestion, 1400);
   } catch (error) {
     if (feedback) feedback.innerHTML = '<div class="points wrong">No se pudo conectar. Reintentando...</div>';

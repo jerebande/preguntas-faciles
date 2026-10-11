@@ -14,7 +14,7 @@
           <span class="avatar avatar-small">
             <% if (player.avatar_data) { %><img src="<%= player.avatar_data %>" alt=""><% } else { %><%= player.nickname.charAt(0).toUpperCase() %><% } %>
           </span>
-          <strong><%= player.nickname %></strong>
+          <strong class="<%= player.nickname.toLowerCase() === 'jeredev' ? 'rainbow-name' : '' %>"><%= player.nickname %></strong>
         </div>
       <% } %>
     </div>

@@ -3,13 +3,17 @@
 <head>
   <%- include('partials/head', { title: 'Partida — preguntas.faciles' }) %>
 </head>
-<body class="game-page">
+<body class="game-page" data-practice-mode="<%= practiceMode ? 'true' : 'false' %>">
   <div class="app">
     <div class="topbar">
       <div class="brand">
         <img src="/img/preguntas-faciles-logo.png" alt="preguntas.faciles" class="mark brand-logo">
       </div>
       <div class="player-chip" id="playerChip">
+        <% if (practiceMode) { %>
+          <strong>Modo prueba</strong>
+          <a class="practice-exit" href="/">Salir</a>
+        <% } else { %>
         <span class="avatar avatar-small" aria-hidden="true">
           <% if (player.avatar_data) { %>
             <img src="<%= player.avatar_data %>" alt="">
@@ -17,15 +21,19 @@
             <%= player.nickname.charAt(0).toUpperCase() %>
           <% } %>
         </span>
-        <strong id="playerName"><%= player.nickname %></strong>
+        <strong id="playerName" class="<%= player.nickname.toLowerCase() === 'jeredev' ? 'rainbow-name' : '' %>"><%= player.nickname %></strong>
+        <% } %>
       </div>
     </div>
 
+    <% if (practiceMode) { %>
+      <p class="practice-notice">Modo de prueba: tus respuestas y puntos no se guardan ni afectan el ranking o las estadísticas.</p>
+    <% } %>
     <section id="gameShell">
       <div class="score-strip">
         <span>Puntos: <strong id="pointsLabel">0</strong></span>
-        <span id="questionProgress">Pregunta 1 de 10</span>
-        <span id="seasonLabel"></span>
+        <span id="questionProgress">Pregunta 1 de <%= practiceMode ? 15 : 10 %></span>
+        <span id="seasonLabel"><%= practiceMode ? 'Práctica' : '' %></span>
       </div>
 
       <div id="gameArea">
@@ -38,7 +46,9 @@
     </section>
   </div>
 
-  <%- include('partials/bottom-nav', { active: 'jugar' }) %>
+  <% if (!practiceMode) { %>
+    <%- include('partials/bottom-nav', { active: 'jugar' }) %>
+  <% } %>
   <script src="/js/game.js"></script>
 </body>
 </html>

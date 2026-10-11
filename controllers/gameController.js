@@ -13,7 +13,15 @@ async function showHome(req, res, next) {
 async function showGame(req, res, next) {
     try {
         if (!req.player) return res.redirect("/");
-        res.render("game", { player: req.player });
+        res.render("game", { player: req.player, practiceMode: false });
+    } catch (err) {
+        next(err);
+    }
+}
+
+function showPractice(req, res, next) {
+    try {
+        res.render("game", { player: null, practiceMode: true });
     } catch (err) {
         next(err);
     }
@@ -63,4 +71,4 @@ async function showStats(req, res, next) {
     }
 }
 
-module.exports = { showHome, showGame, showRanking, showStats };
+module.exports = { showHome, showGame, showPractice, showRanking, showStats };

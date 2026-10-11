@@ -1,5 +1,6 @@
 const questionModel = require("../../models/questionModel");
 const seasonModel = require("../../models/seasonModel");
+const scoreModel = require("../../models/scoreModel");
 const answerLogModel = require("../../models/answerLogModel");
 const settingsModel = require("../../models/settingsModel");
 
@@ -27,11 +28,15 @@ async function getRandomQuestion(req, res, next) {
 
         if (answeredInGame >= 10) {
             req.session.pendingQuestionId = null;
-            const { avg_response_time_ms: avgResponseTimeMs } = await answerLogModel.getPlayerStatsForPlayerInSeason(req.player.id, season.id);
+            const [{ avg_response_time_ms: avgResponseTimeMs }, rankingPosition] = await Promise.all([
+                answerLogModel.getPlayerStatsForPlayerInSeason(req.player.id, season.id),
+                scoreModel.getPlayerRankingPosition(req.player.id, season.id)
+            ]);
             return res.json({
                 done: true,
                 gameComplete: true,
                 avgResponseTimeMs,
+                rankingPosition,
                 message: "Partida terminada. ¡Completaste las 10 preguntas! Podés empezar otra tanda ahora."
             });
         }
@@ -49,6 +54,12 @@ async function getRandomQuestion(req, res, next) {
                         selectedOption: null,
                         isCorrect: false,
                         responseTimeMs: null
+                    });
+                    await scoreModel.applyAnswerResult({
+                        playerId: req.player.id,
+                        seasonId: season.id,
+                        isCorrect: false,
+                        pointsEarned: 0
                     });
                 }
                 req.session.gameQuestionsAnswered = answeredInGame + 1;

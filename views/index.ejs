@@ -83,7 +83,10 @@
             <p class="auth-hint" id="passwordHint">Tu cuenta, tus puntos y tu perfil quedan guardados.</p>
             <altcha-widget challengeurl="/api/captcha-challenge" hidefooter></altcha-widget>
             <div class="error-msg" id="registerError"></div>
-            <button type="submit" class="btn btn-primary" id="authSubmit">Entrar a jugar</button>
+            <div class="auth-actions">
+              <button type="submit" class="btn btn-primary" id="authSubmit">Entrar a jugar</button>
+              <a href="/practice" class="btn btn-secondary practice-start-btn">Probar sin cuenta</a>
+            </div>
           </form>
         </div>
       </div>
@@ -135,7 +138,7 @@
               <% } %>
             </span>
           </button>
-          <strong id="playerName"><%= player.nickname %></strong>
+          <strong id="playerName" class="<%= player.nickname.toLowerCase() === 'jeredev' ? 'rainbow-name' : '' %>"><%= player.nickname %></strong>
           <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/webp" hidden>
           <span class="avatar-status" id="avatarStatus" aria-live="polite"></span>
         <% } %>

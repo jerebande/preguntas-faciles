@@ -39,6 +39,12 @@ async function submitAnswer(req, res, next) {
         const timedOut = selectedOption === null || elapsedMs >= questionTimeLimitMs;
         if (timedOut) {
             await answerLogModel.record({ playerId: req.player.id, questionId, seasonId: season.id, selectedOption: null, isCorrect: false, responseTimeMs: null });
+            await scoreModel.applyAnswerResult({
+                playerId: req.player.id,
+                seasonId: season.id,
+                isCorrect: false,
+                pointsEarned: 0
+            });
             req.session.pendingQuestionId = null;
             req.session.pendingSeasonId = null;
             req.session.pendingQuestionStartedAt = null;

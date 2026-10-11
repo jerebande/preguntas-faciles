@@ -48,7 +48,7 @@
               <%= previousWinner.nickname.charAt(0).toUpperCase() %>
             <% } %>
           </span>
-          <strong><%= previousWinner.nickname %></strong>
+          <strong class="<%= previousWinner.nickname.toLowerCase() === 'jeredev' ? 'rainbow-name' : '' %>"><%= previousWinner.nickname %></strong>
           <span class="previous-winner-points"><%= previousWinner.points %> pts</span>
         </div>
         <span class="previous-winner-season"><%= previousSeason.name %></span>
@@ -69,7 +69,7 @@
               <% } %>
             </span>
             <span class="pos">#<%= i + 1 %></span>
-            <span class="nick"><%= row.nickname %><% if (player && player.nickname === row.nickname) { %> (vos)<% } %></span>
+            <span class="nick <%= row.nickname.toLowerCase() === 'jeredev' ? 'rainbow-name' : '' %>"><%= row.nickname %><% if (player && player.nickname === row.nickname) { %> (vos)<% } %></span>
             <span class="avg-time"><%= row.avg_response_time_ms != null ? (row.avg_response_time_ms / 1000).toFixed(1) + 's prom.' : '—' %></span>
             <span class="pts"><%= row.points %> pts</span>
           </div>
