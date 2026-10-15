@@ -23,6 +23,15 @@ if (process.env.NODE_ENV === "production" && (!process.env.SESSION_SECRET || pro
 
 app.disable("x-powered-by");
 app.set("trust proxy", process.env.TRUST_PROXY === "1" ? 1 : false);
+
+// Redirige preguntasfaciles.com -> www.preguntasfaciles.com (evita contenido duplicado en Google)
+app.use((req, res, next) => {
+    if (req.hostname === "preguntasfaciles.com") {
+        return res.redirect(301, "https://www.preguntasfaciles.com" + req.originalUrl);
+    }
+    next();
+});
+
 app.use((req, res, next) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("X-Frame-Options", "DENY");
@@ -71,6 +80,12 @@ app.use(session({
 }));
 
 app.use(loadPlayer);
+
+// Que Google no indexe el panel admin (sin nombrarlo en robots.txt)
+app.use("/admin", (req, res, next) => {
+    res.setHeader("X-Robots-Tag", "noindex, nofollow");
+    next();
+});
 
 app.use("/", gameRoutes);
 app.use("/api", apiRoutes);
