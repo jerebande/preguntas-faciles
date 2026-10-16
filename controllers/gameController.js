@@ -1,5 +1,6 @@
 const seasonModel = require("../models/seasonModel");
 const scoreModel = require("../models/scoreModel");
+const seasonWinnerModel = require("../models/seasonWinnerModel");
 const answerLogModel = require("../models/answerLogModel");
 
 async function showHome(req, res, next) {
@@ -35,7 +36,7 @@ async function showRanking(req, res, next) {
             seasonModel.findPrevious(season.id)
         ]);
         const previousWinner = previousSeason
-            ? await scoreModel.getWinnerForSeason(previousSeason.id)
+            ? await seasonWinnerModel.getForSeason(previousSeason.id)
             : null;
         res.render("ranking", { player: req.player, season, ranking, previousSeason, previousWinner });
     } catch (err) {

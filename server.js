@@ -9,6 +9,7 @@ const playerModel = require("./models/playerModel");
 const answerLogModel = require("./models/answerLogModel");
 const questionModel = require("./models/questionModel");
 const settingsModel = require("./models/settingsModel");
+const seasonWinnerModel = require("./models/seasonWinnerModel");
 const { loadPlayer } = require("./middleware/player");
 
 const gameRoutes = require("./routes/game");
@@ -115,6 +116,7 @@ ensureAdmin()
     .then(() => answerLogModel.ensureResponseTimeColumn())
     .then(() => questionModel.ensureImageUrlColumn())
     .then(() => settingsModel.ensureTable())
+    .then(() => seasonWinnerModel.ensureTable())
     .then(() => {
         const server = app.listen(PORT, () => console.log(`preguntas.faciles corriendo en http://localhost:${PORT}`));
         server.on("error", (err) => {

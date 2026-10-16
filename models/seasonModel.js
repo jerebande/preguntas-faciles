@@ -1,5 +1,22 @@
 const db = require("../database/db");
 const scoreModel = require("./scoreModel");
+const seasonWinnerModel = require("./seasonWinnerModel");
+
+function getYearEnd(now = new Date()) {
+    return new Date(now.getFullYear() + 1, 0, 1);
+}
+
+function getYearEndName(now = new Date()) {
+    return `Ranking de fin de año ${now.getFullYear()}`;
+}
+
+function isCurrentYearEndSeason(season, now = new Date()) {
+    const yearEnd = getYearEnd(now);
+    const endsAt = new Date(season.ends_at);
+    return season.type === "especial"
+        && season.name === getYearEndName(now)
+        && endsAt.getTime() === yearEnd.getTime();
+}
 
 async function findActive(connection = db) {
     const [rows] = await connection.query(
@@ -10,7 +27,8 @@ async function findActive(connection = db) {
 
 async function getActive() {
     const active = await findActive();
-    if (active && new Date(active.ends_at) > new Date()) return active;
+    const now = new Date();
+    if (active && new Date(active.ends_at) > now && isCurrentYearEndSeason(active, now)) return active;
 
     const connection = await db.getConnection();
     let lockAcquired = false;
@@ -27,23 +45,22 @@ async function getActive() {
         await connection.beginTransaction();
         transactionStarted = true;
         const current = await findActive(connection);
-        if (current && new Date(current.ends_at) > new Date()) {
+        const renewedAt = new Date();
+        const yearEnd = getYearEnd(renewedAt);
+        const name = getYearEndName(renewedAt);
+
+        if (current && new Date(current.ends_at) > renewedAt) {
+            await connection.query(
+                "UPDATE seasons SET name = ?, type = 'especial', ends_at = ? WHERE id = ? AND is_active = 1",
+                [name, yearEnd, current.id]
+            );
+            const season = await findById(current.id, connection);
             await connection.commit();
             transactionStarted = false;
-            return current;
+            return season;
         }
 
-        let season;
-        if (current) {
-            const type = current.type === "mensual" ? "mensual" : "semanal";
-            season = await startNew({
-                name: `${type === "mensual" ? "Mes" : "Semana"} del ${new Date().toLocaleDateString("es-AR")}`,
-                type,
-                days: type === "mensual" ? 30 : 7
-            }, connection);
-        } else {
-            season = await createDefaultWeekly(connection);
-        }
+        const season = await startNew({ name, type: "especial", endsAt: yearEnd }, connection);
         await connection.commit();
         transactionStarted = false;
         return season;
@@ -63,29 +80,19 @@ async function getActive() {
     }
 }
 
-// Si no hay ninguna temporada activa, crea una semanal automáticamente
-// para que el juego nunca se quede sin temporada corriendo.
-async function createDefaultWeekly(connection = db) {
-    const now = new Date();
-    const end = new Date(now);
-    end.setDate(end.getDate() + 7);
-
-    const name = `Semana del ${now.toLocaleDateString("es-AR")}`;
-    const [result] = await connection.query(
-        `INSERT INTO seasons (name, type, starts_at, ends_at, is_active)
-         VALUES (?, 'semanal', ?, ?, 1)`,
-        [name, now, end]
-    );
-    return findById(result.insertId, connection);
-}
-
 async function findById(id, connection = db) {
     const [rows] = await connection.query("SELECT * FROM seasons WHERE id = ?", [id]);
     return rows[0] || null;
 }
 
 async function findAll() {
-    const [rows] = await db.query("SELECT * FROM seasons ORDER BY starts_at DESC");
+    const [rows] = await db.query(
+        `SELECT seasons.*, season_winners.nickname AS winner_nickname,
+                season_winners.points AS winner_points
+         FROM seasons
+         LEFT JOIN season_winners ON season_winners.season_id = seasons.id
+         ORDER BY seasons.starts_at DESC`
+    );
     return rows;
 }
 
@@ -101,13 +108,32 @@ async function findPrevious(currentSeasonId) {
 }
 
 // Cierra la temporada activa y abre una nueva (esto "reinicia" el ranking).
-async function startNew({ name, type, days }, connection = db) {
+async function startNew(options, connection) {
+    if (connection) return startNewInConnection(options, connection);
+
+    const transaction = await db.getConnection();
+    try {
+        await transaction.beginTransaction();
+        const season = await startNewInConnection(options, transaction);
+        await transaction.commit();
+        return season;
+    } catch (err) {
+        await transaction.rollback();
+        throw err;
+    } finally {
+        transaction.release();
+    }
+}
+
+async function startNewInConnection({ name, type, days, endsAt }, connection) {
+    const current = await findActive(connection);
+    if (current) await seasonWinnerModel.archiveSeason(current.id, connection);
     await connection.query("UPDATE seasons SET is_active = 0 WHERE is_active = 1");
 
     const now = new Date();
     const duration = parseInt(days, 10) || (type === "mensual" ? 30 : 7);
-    const end = new Date(now);
-    end.setDate(end.getDate() + duration);
+    const end = endsAt || new Date(now);
+    if (!endsAt) end.setDate(end.getDate() + duration);
 
     const finalName = name || `Temporada del ${now.toLocaleDateString("es-AR")}`;
     const [result] = await connection.query(
@@ -120,6 +146,15 @@ async function startNew({ name, type, days }, connection = db) {
 
 async function advanceCurrent() {
     const current = await getActive();
+    if (current.type === "especial" && current.name === getYearEndName()) {
+        const now = new Date();
+        return startNew({
+            name: getYearEndName(now),
+            type: "especial",
+            endsAt: getYearEnd(now)
+        });
+    }
+
     const type = current.type === "mensual" ? "mensual" : "semanal";
     const label = type === "mensual" ? "Mes" : "Semana";
     const now = new Date();

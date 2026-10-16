@@ -80,11 +80,14 @@ segunda base ni un sistema paralelo.
 
 - El jugador entra, pone un nickname (sin contraseña) y ese nickname queda guardado en su
   sesión por 90 días.
-- Cada temporada (semanal por defecto) el jugador puede responder cada pregunta activa una
-  sola vez. Las respuestas correctas suman los puntos configurados en esa pregunta.
+- El ranking se mantiene unificado hasta el 31 de diciembre de cada año; el 1 de enero
+  comienza una nueva temporada sin perder el historial. Cada jugador puede responder cada
+  pregunta activa una sola vez por temporada.
 - El ranking (`/ranking`) muestra el top 50 de la temporada activa.
 - Desde `/admin/seasons` el administrador cierra la temporada activa y abre una nueva,
   reiniciando el ranking sin perder el historial (queda guardado en la tabla `seasons`).
+- Al cerrar una temporada, el ganador y sus datos quedan archivados en `season_winners`;
+  ese registro conserva el nickname, avatar y puntaje aunque el perfil cambie después.
 
 ## Pensado para crecer
 

@@ -37,9 +37,9 @@ async function getRankingForSeason(seasonId, limit = 50) {
     return rows;
 }
 
-async function getWinnerForSeason(seasonId) {
-    const [rows] = await db.query(
-        `SELECT p.nickname, p.avatar_data, s.points, s.correct_answers, s.wrong_answers,
+async function getWinnerForSeason(seasonId, connection = db) {
+    const [rows] = await connection.query(
+        `SELECT p.id AS player_id, p.nickname, p.avatar_data, s.points, s.correct_answers, s.wrong_answers,
                 t.avg_response_time_ms
          FROM scores s
          JOIN players p ON p.id = s.player_id
