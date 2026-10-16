@@ -18,7 +18,8 @@
     </div>
 
     <p class="stats-season">
-      <%= season.name %> · ranking fijo hasta fin de año
+      <% const rankingEndDate = new Date(season.ends_at); rankingEndDate.setDate(rankingEndDate.getDate() - 1); %>
+      Ranking fijo hasta el <%= rankingEndDate.toLocaleDateString('es-AR') %>
     </p>
 
     <section class="year-end-draw" aria-labelledby="year-end-draw-title">
