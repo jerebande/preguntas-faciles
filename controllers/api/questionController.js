@@ -76,7 +76,13 @@ async function getRandomQuestion(req, res, next) {
             }
         }
 
-        const question = await questionModel.findRandomUnanswered(req.player.id, season.id);
+        if (req.session.pendingSeasonId !== season.id) {
+            req.session.pendingQuestionId = null;
+            req.session.pendingSeasonId = null;
+            req.session.pendingQuestionStartedAt = null;
+        }
+
+        const question = await questionModel.findRandomUnanswered(req.player.id);
 
         if (!question) {
             req.session.pendingQuestionId = null;

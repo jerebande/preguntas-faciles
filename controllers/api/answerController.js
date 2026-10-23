@@ -21,6 +21,9 @@ async function submitAnswer(req, res, next) {
         }
 
         const season = await seasonModel.getActive();
+        if (req.session.pendingSeasonId !== season.id) {
+            return res.status(409).json({ error: "Esta pregunta pertenece a una temporada anterior." });
+        }
         const questionTimeSeconds = await settingsModel.getQuestionTimeSeconds();
         const questionTimeLimitMs = questionTimeSeconds * 1000;
 

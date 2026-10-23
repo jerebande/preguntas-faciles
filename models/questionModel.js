@@ -33,14 +33,14 @@ async function ensureImageUrlColumn() {
     }
 }
 
-// Pregunta aleatoria activa que el jugador todavía no respondió en esta temporada.
-async function findRandomUnanswered(playerId, seasonId) {
+// Las preguntas respondidas no vuelven a aparecerle al jugador en temporadas futuras.
+async function findRandomUnanswered(playerId) {
     const unansweredCondition = `q.active = 1
          AND NOT EXISTS (
              SELECT 1 FROM answer_logs a
-             WHERE a.player_id = ? AND a.season_id = ? AND a.question_id = q.id
+             WHERE a.player_id = ? AND a.question_id = q.id
          )`;
-    const params = [playerId, seasonId];
+    const params = [playerId];
     const [[{ total }]] = await db.query(
         `SELECT COUNT(*) AS total FROM questions q WHERE ${unansweredCondition}`,
         params
