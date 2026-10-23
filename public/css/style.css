@@ -983,6 +983,66 @@ input::placeholder { color: #687373; }
 .feedback .points.correct { color: var(--answer-correct); }
 .ad-slot { border-color: rgba(244,246,242,.14); color: #687373; }
 
+.site-footer {
+  width: 100%;
+  padding: 18px 20px 24px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  color: var(--gray);
+  font-size: 13px;
+  text-align: center;
+}
+
+.site-footer a,
+.privacy-content a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.privacy-content {
+  width: min(100% - 40px, 820px);
+  margin: 0 auto;
+  padding: 36px 0 24px;
+  line-height: 1.7;
+}
+
+.privacy-content h1,
+.privacy-content h2 {
+  font-family: var(--font-display);
+  line-height: 1.2;
+}
+
+.privacy-content h1 {
+  margin: 8px 0;
+  font-size: clamp(34px, 7vw, 52px);
+}
+
+.privacy-content h2 {
+  margin: 32px 0 8px;
+  font-size: 22px;
+}
+
+.privacy-content p,
+.privacy-content li {
+  color: #51483d;
+}
+
+.privacy-content li + li {
+  margin-top: 8px;
+}
+
+.privacy-updated {
+  margin-top: 0;
+  color: var(--gray) !important;
+  font-size: 14px;
+}
+
+.privacy-back {
+  display: inline-block;
+  margin-bottom: 30px;
+}
+
 .ranking-row, .stat-card, table {
   background: #151b1c;
   border-color: var(--line);
