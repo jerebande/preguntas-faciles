@@ -1,4 +1,5 @@
 const adminModel = require("../../models/adminModel");
+const { clearAuthAttempts } = require("../../middleware/rateLimit");
 
 function showLogin(req, res) {
     if (req.session.adminId) return res.redirect("/admin");
@@ -21,6 +22,7 @@ async function login(req, res, next) {
         if (playerId) req.session.playerId = playerId;
         req.session.adminId = admin.id;
         req.session.adminUsername = admin.username;
+        clearAuthAttempts(req);
         res.redirect("/admin");
     } catch (err) {
         next(err);

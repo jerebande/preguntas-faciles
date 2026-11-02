@@ -4,6 +4,7 @@ const playerModel = require("../../models/playerModel");
 const seasonModel = require("../../models/seasonModel");
 const scoreModel = require("../../models/scoreModel");
 const captchaService = require("../../services/captchaService");
+const { clearAuthAttempts } = require("../../middleware/rateLimit");
 
 async function register(req, res, next) {
     try {
@@ -64,6 +65,7 @@ async function register(req, res, next) {
         req.session.gameQuestionsAnswered = 0;
         req.session.pendingQuestionId = null;
         req.session.pendingQuestionStartedAt = null;
+        clearAuthAttempts(req);
         res.json({ ok: true, nickname: player.nickname });
     } catch (err) {
         next(err);
@@ -89,6 +91,7 @@ async function login(req, res, next) {
         req.session.gameQuestionsAnswered = 0;
         req.session.pendingQuestionId = null;
         req.session.pendingQuestionStartedAt = null;
+        clearAuthAttempts(req);
         res.json({ ok: true, nickname: player.nickname });
     } catch (err) {
         next(err);
@@ -131,6 +134,7 @@ async function claimAccount(req, res, next) {
         req.session.gameQuestionsAnswered = 0;
         req.session.pendingQuestionId = null;
         req.session.pendingQuestionStartedAt = null;
+        clearAuthAttempts(req);
         res.json({ ok: true, nickname: player.nickname });
     } catch (err) {
         next(err);
