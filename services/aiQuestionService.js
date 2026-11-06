@@ -2,6 +2,7 @@
 // el Parribot de La Vieja Esquina). No agrega una base de datos nueva: solo
 // arma texto y lo devuelve para que el controller lo guarde en la misma tabla
 // `questions` de siempre.
+const { filterGeneratedQuestions } = require("./questionQualityService");
 
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const MODEL = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
@@ -29,8 +30,11 @@ Dificultad: ${difficulty || "variada (mezclá facil, media y dificil)"}.
 Reglas:
 - Cada pregunta debe tener exactamente 4 opciones (a, b, c, d), todas plausibles.
 - Una sola opción correcta.
-- Preguntas cortas, pensadas para responder en celular en pocos segundos.
+- Preguntas cortas, claras y sin ambigüedades, pensadas para responder en pocos segundos.
+- Usá hechos estables y verificables; evitá opiniones, datos dudosos y preguntas que dependan de información reciente.
+- Comprobá que la opción marcada como correcta responda exactamente la pregunta y no contradiga las otras opciones.
 - No repitas preguntas ni temas entre sí dentro de la misma tanda.
+- Estas preguntas serán revisadas por una persona antes de publicarse; no inventes fuentes ni afirmes certeza cuando no la tengas.
 
 Respondé ÚNICAMENTE con un array JSON válido, sin texto adicional, con este formato exacto:
 [
@@ -87,11 +91,7 @@ async function generateQuestions({ topic, count, difficulty, includeImages = fal
         throw new Error("La respuesta de la IA no tiene el formato esperado.");
     }
 
-    return questions
-        .filter((q) =>
-            q.question_text && q.option_a && q.option_b && q.option_c && q.option_d &&
-            ["a", "b", "c", "d"].includes(q.correct_option)
-        )
+    return filterGeneratedQuestions(questions)
         .map((q) => ({
             ...q,
             image_url: includeImages ? (q.image_url || buildImageUrl(q, topic)) : null

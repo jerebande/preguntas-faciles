@@ -1,6 +1,14 @@
 const db = require("../database/db");
 
-async function hasAnswered(playerId, questionId) {
+async function hasAnswered(playerId, questionId, weekStart = null) {
+    if (weekStart) {
+        const [rows] = await db.query(
+            "SELECT id FROM answer_logs WHERE player_id = ? AND question_id = ? AND week_start = ? LIMIT 1",
+            [playerId, questionId, weekStart]
+        );
+        return rows.length > 0;
+    }
+
     const [rows] = await db.query(
         "SELECT id FROM answer_logs WHERE player_id = ? AND question_id = ? LIMIT 1",
         [playerId, questionId]
@@ -8,12 +16,20 @@ async function hasAnswered(playerId, questionId) {
     return rows.length > 0;
 }
 
-async function record({ playerId, questionId, seasonId, selectedOption, isCorrect, responseTimeMs }) {
+async function record({ playerId, questionId, seasonId, weekStart, selectedOption, isCorrect, responseTimeMs }) {
     await db.query(
-        `INSERT INTO answer_logs (player_id, question_id, season_id, selected_option, response_time_ms, is_correct)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [playerId, questionId, seasonId, selectedOption, responseTimeMs ?? null, isCorrect ? 1 : 0]
+        `INSERT INTO answer_logs (player_id, question_id, season_id, week_start, selected_option, response_time_ms, is_correct)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [playerId, questionId, seasonId, weekStart, selectedOption, responseTimeMs ?? null, isCorrect ? 1 : 0]
     );
+}
+
+async function countForPlayerInWeek(playerId, weekStart) {
+    const [[{ total }]] = await db.query(
+        "SELECT COUNT(*) AS total FROM answer_logs WHERE player_id = ? AND week_start = ?",
+        [playerId, weekStart]
+    );
+    return Number(total);
 }
 
 async function getTopQuestionsForSeason(seasonId, limit = 10) {
@@ -150,9 +166,53 @@ async function ensureResponseTimeColumn() {
     }
 }
 
+async function ensureWeeklyRoundColumn() {
+    const [[column]] = await db.query(
+        `SELECT COUNT(*) AS total
+         FROM information_schema.columns
+         WHERE table_schema = DATABASE()
+           AND table_name = 'answer_logs'
+           AND column_name = 'week_start'`
+    );
+    if (!column.total) {
+        await db.query("ALTER TABLE answer_logs ADD COLUMN week_start DATE NULL AFTER season_id");
+    }
+
+    const [indexes] = await db.query(
+        `SELECT index_name, GROUP_CONCAT(column_name ORDER BY seq_in_index) AS columns_in_index
+         FROM information_schema.statistics
+         WHERE table_schema = DATABASE()
+           AND table_name = 'answer_logs'
+           AND non_unique = 0
+           AND index_name <> 'PRIMARY'
+         GROUP BY index_name`
+    );
+    for (const index of indexes) {
+        const columns = index.columns_in_index.split(",");
+        if (columns.includes("player_id") && columns.includes("question_id") && !columns.includes("week_start")) {
+            const safeIndexName = index.index_name.replace(/`/g, "``");
+            await db.query(`ALTER TABLE answer_logs DROP INDEX \`${safeIndexName}\``);
+        }
+    }
+
+    const [[weeklyIndex]] = await db.query(
+        `SELECT COUNT(*) AS total
+         FROM information_schema.statistics
+         WHERE table_schema = DATABASE()
+           AND table_name = 'answer_logs'
+           AND index_name = 'uq_answer_logs_player_question_week'`
+    );
+    if (!weeklyIndex.total) {
+        await db.query(
+            "ALTER TABLE answer_logs ADD UNIQUE INDEX uq_answer_logs_player_question_week (player_id, question_id, week_start)"
+        );
+    }
+}
+
 module.exports = {
     hasAnswered,
     record,
+    countForPlayerInWeek,
     getTopQuestionsForSeason,
     countActivePlayersForSeason,
     getPlayerStatsForSeason,
@@ -162,5 +222,6 @@ module.exports = {
     getGlobalStatsAllTime,
     getPlayerStatsAllTime,
     ensureSelectedOptionNullable,
-    ensureResponseTimeColumn
+    ensureResponseTimeColumn,
+    ensureWeeklyRoundColumn
 };

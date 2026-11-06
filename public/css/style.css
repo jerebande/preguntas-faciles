@@ -2300,3 +2300,38 @@ img.mark {
   .hero { min-height: 520px; }
   .hero-photo img { height: 520px; }
 }
+
+.weekly-round-note {
+  color: var(--gray);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 12px 0 0;
+}
+
+.weekly-round-note strong {
+  color: var(--black);
+  font-weight: 700;
+}
+
+.game-weekly-note {
+  margin: 0 4px 12px;
+  text-align: center;
+}
+
+.question-review-alert {
+  background: #fff3d4;
+  border: 1px solid rgba(154, 98, 0, .28);
+  border-radius: 12px;
+  color: #684500;
+  margin: 16px 0;
+  padding: 14px 18px;
+}
+
+.question-review-alert ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+
+.question-source-missing {
+  color: #9a6200;
+}

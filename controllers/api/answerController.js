@@ -3,6 +3,7 @@ const seasonModel = require("../../models/seasonModel");
 const scoreModel = require("../../models/scoreModel");
 const answerLogModel = require("../../models/answerLogModel");
 const settingsModel = require("../../models/settingsModel");
+const { getWeeklyRound } = require("../../services/weeklyRoundService");
 
 async function submitAnswer(req, res, next) {
     try {
@@ -21,8 +22,9 @@ async function submitAnswer(req, res, next) {
         }
 
         const season = await seasonModel.getActive();
-        if (req.session.pendingSeasonId !== season.id) {
-            return res.status(409).json({ error: "Esta pregunta pertenece a una temporada anterior." });
+        const weeklyRound = getWeeklyRound();
+        if (req.session.pendingSeasonId !== season.id || req.session.pendingWeekStart !== weeklyRound.startDate) {
+            return res.status(409).json({ error: "Esta pregunta pertenece a una tanda anterior." });
         }
         const questionTimeSeconds = await settingsModel.getQuestionTimeSeconds();
         const questionTimeLimitMs = questionTimeSeconds * 1000;
@@ -30,18 +32,19 @@ async function submitAnswer(req, res, next) {
         const question = await questionModel.findActiveById(questionId);
         if (!question) return res.status(404).json({ error: "Pregunta no encontrada." });
 
-        const already = await answerLogModel.hasAnswered(req.player.id, questionId);
-        if (already) return res.status(409).json({ error: "Ya respondiste esta pregunta." });
-
-        if ((Number(req.session.gameQuestionsAnswered) || 0) >= 10) {
-            return res.status(409).json({ error: "Tu partida ya terminó." });
+        const answeredThisWeek = await answerLogModel.countForPlayerInWeek(req.player.id, weeklyRound.startDate);
+        if (answeredThisWeek >= 10) {
+            return res.status(409).json({ error: "Ya completaste las 10 preguntas de esta semana. Volvé el lunes." });
         }
+
+        const already = await answerLogModel.hasAnswered(req.player.id, questionId, weeklyRound.startDate);
+        if (already) return res.status(409).json({ error: "Ya respondiste esta pregunta." });
 
         const startedAt = req.session.pendingQuestionStartedAt || Date.now();
         const elapsedMs = Date.now() - startedAt;
         const timedOut = selectedOption === null || elapsedMs >= questionTimeLimitMs;
         if (timedOut) {
-            await answerLogModel.record({ playerId: req.player.id, questionId, seasonId: season.id, selectedOption: null, isCorrect: false, responseTimeMs: null });
+            await answerLogModel.record({ playerId: req.player.id, questionId, seasonId: season.id, weekStart: weeklyRound.startDate, selectedOption: null, isCorrect: false, responseTimeMs: null });
             await scoreModel.applyAnswerResult({
                 playerId: req.player.id,
                 seasonId: season.id,
@@ -50,6 +53,7 @@ async function submitAnswer(req, res, next) {
             });
             req.session.pendingQuestionId = null;
             req.session.pendingSeasonId = null;
+            req.session.pendingWeekStart = null;
             req.session.pendingQuestionStartedAt = null;
             req.session.gameQuestionsAnswered = (req.session.gameQuestionsAnswered || 0) + 1;
             return res.status(408).json({ timedOut: true, error: "Se terminó el tiempo. La pregunta no vuelve a aparecer." });
@@ -62,6 +66,7 @@ async function submitAnswer(req, res, next) {
             playerId: req.player.id,
             questionId,
             seasonId: season.id,
+            weekStart: weeklyRound.startDate,
             selectedOption,
             isCorrect,
             responseTimeMs: elapsedMs
@@ -76,6 +81,7 @@ async function submitAnswer(req, res, next) {
 
         req.session.pendingQuestionId = null;
         req.session.pendingSeasonId = null;
+        req.session.pendingWeekStart = null;
         req.session.pendingQuestionStartedAt = null;
         req.session.gameQuestionsAnswered = (req.session.gameQuestionsAnswered || 0) + 1;
 

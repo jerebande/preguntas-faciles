@@ -67,22 +67,24 @@ segunda base ni un sistema paralelo.
 
 - **A mano:** `/admin/questions/new`, como siempre.
 - **Con IA:** `/admin/questions/generate-ai` — el admin pone un tema, cantidad y
-  dificultad, y Claude genera las preguntas. Se guardan automáticamente como
-  **inactivas** (borrador) y no aparecen en el juego hasta que las revisás y las
-  activás desde `/admin/questions` (podés editarlas antes de activarlas, igual que
-  cualquier otra pregunta). Esto evita que algo mal generado llegue directo a
-  producción.
-- Para usar esta función necesitás una API key de Anthropic en `.env`
-  (`ANTHROPIC_API_KEY`). Si no la configurás, el resto de la app funciona igual —
+  dificultad, y Groq propone preguntas. Se guardan automáticamente como
+  **inactivas** (borrador). Antes de publicar cada una, revisá la redacción y la
+  respuesta correcta contra una fuente confiable y agregá el enlace en el formulario
+  de edición. La IA puede equivocarse; sus borradores no aparecen en el juego.
+- Para usar esta función necesitás una API key de Groq en `.env`
+  (`GROQ_API_KEY`). Si no la configurás, el resto de la app funciona igual —
   solo ese botón va a mostrar un error pidiendo la key.
 
 ## Cómo funciona el juego
 
-- El jugador entra, pone un nickname (sin contraseña) y ese nickname queda guardado en su
-  sesión por 90 días.
+- El jugador crea una cuenta con nickname y contraseña; la sesión puede durar hasta 90 días.
+- Cada lunes a las 00:00 de Argentina comienza una tanda nueva de hasta 10 preguntas.
+  Todos reciben las mismas preguntas en el mismo orden y pueden responder cada una una
+  sola vez durante esa semana. El sitio muestra una cuenta regresiva hasta el lunes.
+- Los puntos de cada tanda se acumulan en el ranking anual. Las respuestas semanales
+  quedan registradas y las preguntas pueden volver a aparecer en semanas posteriores.
 - El ranking se mantiene unificado hasta el 31 de diciembre de cada año; el 1 de enero
-  comienza una nueva temporada sin perder el historial. Cada jugador puede responder cada
-  pregunta activa una sola vez por temporada.
+  comienza una nueva temporada sin perder el historial.
 - El ranking (`/ranking`) muestra el top 50 de la temporada activa.
 - Desde `/admin/seasons` el administrador cierra la temporada activa y abre una nueva,
   reiniciando el ranking sin perder el historial (queda guardado en la tabla `seasons`).
@@ -129,6 +131,8 @@ de negocio.
 
 - Usar `NODE_ENV=production` y cambiar `SESSION_SECRET` por un valor aleatorio de al
   menos 32 caracteres. La aplicación ahora se niega a arrancar si falta ese secreto.
+- Configurar también `ADMIN_USERNAME` y `ADMIN_PASSWORD` antes del primer arranque en
+  producción. El servidor ya no crea el administrador con credenciales predecibles.
 - Mantener `TRUST_PROXY=0` salvo que la aplicación esté detrás de un proxy inverso
   confiable. Si está detrás de Nginx, Cloudflare o similar, configurar `TRUST_PROXY=1`
   para que las cookies seguras y los límites por IP funcionen correctamente.
@@ -142,5 +146,10 @@ de negocio.
   CAPTCHA debe verificarse en el servidor con la API del proveedor; ocultarlo solo en el
   navegador no protege la aplicación.
 - Cambiar la contraseña del admin inicial apenas entren por primera vez.
+- El alta limita a cuatro cuentas por dirección IP en total. Se conserva indefinidamente
+  una huella HMAC de la IP, no la IP en claro en el registro de altas. El límite puede
+  afectar a personas que comparten conexión; cambiar `ABUSE_HASH_SECRET` reinicia
+  efectivamente el límite, por lo que la clave debe ser estable y respaldarse de forma
+  segura.
 - Servir la app detrás de HTTPS (Hostinger, Railway, Render, etc.) antes de lanzarla
   públicamente, para que las cookies de sesión viajen seguras.

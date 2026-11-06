@@ -9,9 +9,34 @@ async function findAllWithCategory() {
     return rows;
 }
 
+async function ensureSourceUrlColumn() {
+    const [[column]] = await db.query(
+        `SELECT COUNT(*) AS total
+         FROM information_schema.columns
+         WHERE table_schema = DATABASE()
+           AND table_name = 'questions'
+           AND column_name = 'source_url'`
+    );
+    if (!column.total) {
+        await db.query("ALTER TABLE questions ADD COLUMN source_url VARCHAR(1000) NULL AFTER image_url");
+    }
+}
+
 async function findById(id) {
     const [rows] = await db.query("SELECT * FROM questions WHERE id = ?", [id]);
     return rows[0] || null;
+}
+
+function normalizeSourceUrl(value) {
+    if (!value) return null;
+    const normalized = String(value).trim();
+    try {
+        const url = new URL(normalized);
+        if (!["http:", "https:"].includes(url.protocol)) return null;
+        return url.toString().slice(0, 1000);
+    } catch (error) {
+        return null;
+    }
 }
 
 async function findActiveById(id) {
@@ -33,29 +58,20 @@ async function ensureImageUrlColumn() {
     }
 }
 
-// Las preguntas respondidas no vuelven a aparecerle al jugador en temporadas futuras.
-async function findRandomUnanswered(playerId) {
-    const unansweredCondition = `q.active = 1
-         AND NOT EXISTS (
-             SELECT 1 FROM answer_logs a
-             WHERE a.player_id = ? AND a.question_id = q.id
-         )`;
-    const params = [playerId];
-    const [[{ total }]] = await db.query(
-        `SELECT COUNT(*) AS total FROM questions q WHERE ${unansweredCondition}`,
-        params
-    );
-    const unansweredCount = Number(total);
-    if (!unansweredCount) return null;
-
-    const offset = Math.floor(Math.random() * unansweredCount);
+// Todos reciben las preguntas de la tanda semanal en el mismo orden.
+async function findNextUnanswered(playerId, weekStart) {
     const [rows] = await db.query(
         `SELECT q.id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.points_value, q.image_url
-         FROM questions q
-         WHERE ${unansweredCondition}
-         ORDER BY q.id
-         LIMIT 1 OFFSET ?`,
-        [...params, offset]
+         FROM weekly_questions w
+         JOIN questions q ON q.id = w.question_id
+         WHERE w.week_start = ? AND q.active = 1
+           AND NOT EXISTS (
+               SELECT 1 FROM answer_logs a
+               WHERE a.player_id = ? AND a.question_id = q.id AND a.week_start = ?
+           )
+         ORDER BY w.slot
+         LIMIT 1`,
+        [weekStart, playerId, weekStart]
     );
     return rows[0] || null;
 }
@@ -66,21 +82,21 @@ async function countActive() {
 }
 
 async function create(data) {
-    const { category_id, question_text, option_a, option_b, option_c, option_d, correct_option, difficulty, points_value, image_url } = data;
+    const { category_id, question_text, option_a, option_b, option_c, option_d, correct_option, difficulty, points_value, image_url, source_url } = data;
     const [result] = await db.query(
-        `INSERT INTO questions (category_id, question_text, option_a, option_b, option_c, option_d, correct_option, difficulty, points_value, image_url)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [category_id || null, question_text, option_a, option_b, option_c, option_d, correct_option, difficulty, points_value || 10, normalizeImageUrl(image_url)]
+        `INSERT INTO questions (category_id, question_text, option_a, option_b, option_c, option_d, correct_option, difficulty, points_value, image_url, source_url, active)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+        [category_id || null, question_text, option_a, option_b, option_c, option_d, correct_option, difficulty, points_value || 10, normalizeImageUrl(image_url), normalizeSourceUrl(source_url)]
     );
     return findById(result.insertId);
 }
 
 async function update(id, data) {
-    const { category_id, question_text, option_a, option_b, option_c, option_d, correct_option, difficulty, points_value, image_url, active } = data;
+    const { category_id, question_text, option_a, option_b, option_c, option_d, correct_option, difficulty, points_value, image_url, source_url, active } = data;
     await db.query(
         `UPDATE questions SET category_id=?, question_text=?, option_a=?, option_b=?, option_c=?, option_d=?,
-         correct_option=?, difficulty=?, points_value=?, image_url=?, active=? WHERE id=?`,
-        [category_id || null, question_text, option_a, option_b, option_c, option_d, correct_option, difficulty, points_value || 10, normalizeImageUrl(image_url), active ? 1 : 0, id]
+         correct_option=?, difficulty=?, points_value=?, image_url=?, source_url=?, active=? WHERE id=?`,
+        [category_id || null, question_text, option_a, option_b, option_c, option_d, correct_option, difficulty, points_value || 10, normalizeImageUrl(image_url), normalizeSourceUrl(source_url), active === "1" || active === 1 || active === true ? 1 : 0, id]
     );
     return findById(id);
 }
@@ -91,10 +107,18 @@ async function remove(id) {
 
 // Prende/apaga una pregunta con un solo clic, sin pasar por el formulario de edición.
 async function toggleActive(id) {
-    await db.query("UPDATE questions SET active = IF(active = 1, 0, 1) WHERE id = ?", [id]);
+    const question = await findById(id);
+    if (!question) return false;
+    const shouldActivate = Number(question.active) === 0;
+    if (shouldActivate && !normalizeSourceUrl(question.source_url)) return false;
+    await db.query("UPDATE questions SET active = ? WHERE id = ?", [shouldActivate ? 1 : 0, id]);
+    return true;
 }
 
 async function setAllActive(active) {
+    if (active) {
+        throw new Error("Las preguntas deben revisarse y publicarse individualmente.");
+    }
     await db.query("UPDATE questions SET active = ?", [active ? 1 : 0]);
 }
 
@@ -142,7 +166,8 @@ module.exports = {
     findById,
     findActiveById,
     ensureImageUrlColumn,
-    findRandomUnanswered,
+    ensureSourceUrlColumn,
+    findNextUnanswered,
     countActive,
     countDrafts,
     create,

@@ -29,11 +29,15 @@
 
     <% if (practiceMode) { %>
       <p class="practice-notice">Modo de prueba: tus respuestas y puntos no se guardan ni afectan el ranking o las estadísticas.</p>
+    <% } else { %>
+      <p class="weekly-round-note game-weekly-note" data-weekly-reset="<%= weeklyRound.nextMondayAt %>">
+        Tanda semanal · vuelve el lunes en <strong data-weekly-countdown></strong>
+      </p>
     <% } %>
     <section id="gameShell">
       <div class="score-strip">
         <span>Puntos: <strong id="pointsLabel">0</strong></span>
-        <span id="questionProgress">Pregunta 1 de <%= practiceMode ? 15 : 10 %></span>
+        <span id="questionProgress"><%= practiceMode ? 'Pregunta 1 de 15' : 'Pregunta 1 de 10 esta semana' %></span>
         <span id="seasonLabel"><%= practiceMode ? 'Práctica' : '' %></span>
       </div>
 

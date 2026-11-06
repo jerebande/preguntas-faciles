@@ -50,6 +50,7 @@ router.post("/game/new", (req, res) => {
     req.session.gameQuestionsAnswered = 0;
     req.session.pendingQuestionId = null;
     req.session.pendingSeasonId = null;
+    req.session.pendingWeekStart = null;
     req.session.pendingQuestionStartedAt = null;
     res.json({ ok: true });
 });

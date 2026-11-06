@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&display=swap">
   <!-- Google AdSense: reemplazá ca-pub-XXXXXXXXXXXX por tu ID de editor -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXX" crossorigin="anonymous"></script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5732292418113418" crossorigin="anonymous"></script>
 </head>
 <body class="home-page<%= player ? '' : ' home-guest' %>">
   <% if (!player) { %>
@@ -31,6 +31,10 @@
           <div class="gate-kicker">Trivia semanal · sin emails</div>
           <h1>Entrá a jugar y subí en el ranking.</h1>
           <p class="hero-sub">Jugá, sumá puntos y demostrá cuánto sabés.</p>
+          <p class="weekly-round-note" data-weekly-reset="<%= weeklyRound.nextMondayAt %>">
+            10 preguntas nuevas cada lunes · Próxima tanda en
+            <strong data-weekly-countdown></strong>
+          </p>
         </div>
 
         <aside class="hero-prize" aria-label="Sorteo de fin de año">
@@ -151,6 +155,9 @@
           <span class="gate-kicker">Espacio de juego</span>
           <h1>Dejá tu perfil listo.</h1>
           <p>Podés cambiar tu foto o nickname. El nombre sólo se guarda si está disponible.</p>
+          <p class="weekly-round-note" data-weekly-reset="<%= weeklyRound.nextMondayAt %>">
+            10 preguntas nuevas para todos el lunes en <strong data-weekly-countdown></strong>
+          </p>
         </div>
         <div class="profile-card">
           <button type="button" class="profile-avatar-button avatar-trigger" id="profileAvatarTrigger" aria-label="Cambiar foto de perfil">

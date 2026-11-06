@@ -10,36 +10,42 @@
     <h2 style="font-family: var(--font-display); margin-top:0;">
       <%= question ? 'Editar pregunta' : 'Nueva pregunta' %>
     </h2>
+    <% if (errors && errors.length) { %>
+      <div class="question-review-alert" role="alert">
+        <strong>Revisá estos datos antes de guardar:</strong>
+        <ul><% errors.forEach(error => { %><li><%= error %></li><% }) %></ul>
+      </div>
+    <% } %>
 
     <form method="POST" enctype="multipart/form-data" action="<%= question ? `/admin/questions/${question.id}/edit` : '/admin/questions/new' %>" class="form-grid">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <div class="full">
         <label>Pregunta</label>
-        <textarea name="question_text" rows="2" required><%= question ? question.question_text : '' %></textarea>
+        <textarea name="question_text" rows="2" maxlength="500" required><%= (formData || question)?.question_text || '' %></textarea>
       </div>
 
       <div>
         <label>Opción A</label>
-        <input type="text" name="option_a" value="<%= question ? question.option_a : '' %>" required>
+        <input type="text" name="option_a" maxlength="180" value="<%= (formData || question)?.option_a || '' %>" required>
       </div>
       <div>
         <label>Opción B</label>
-        <input type="text" name="option_b" value="<%= question ? question.option_b : '' %>" required>
+        <input type="text" name="option_b" maxlength="180" value="<%= (formData || question)?.option_b || '' %>" required>
       </div>
       <div>
         <label>Opción C</label>
-        <input type="text" name="option_c" value="<%= question ? question.option_c : '' %>" required>
+        <input type="text" name="option_c" maxlength="180" value="<%= (formData || question)?.option_c || '' %>" required>
       </div>
       <div>
         <label>Opción D</label>
-        <input type="text" name="option_d" value="<%= question ? question.option_d : '' %>" required>
+        <input type="text" name="option_d" maxlength="180" value="<%= (formData || question)?.option_d || '' %>" required>
       </div>
 
       <div>
         <label>Respuesta correcta</label>
         <select name="correct_option" required>
           <% ['a','b','c','d'].forEach(k => { %>
-            <option value="<%= k %>" <%= question && question.correct_option === k ? 'selected' : '' %>><%= k.toUpperCase() %></option>
+            <option value="<%= k %>" <%= (formData || question)?.correct_option === k ? 'selected' : '' %>><%= k.toUpperCase() %></option>
           <% }) %>
         </select>
       </div>
@@ -49,7 +55,7 @@
         <select name="category_id">
           <option value="">Sin categoría</option>
           <% categories.forEach(c => { %>
-            <option value="<%= c.id %>" <%= question && question.category_id === c.id ? 'selected' : '' %>><%= c.name %></option>
+            <option value="<%= c.id %>" <%= Number((formData || question)?.category_id) === Number(c.id) ? 'selected' : '' %>><%= c.name %></option>
           <% }) %>
         </select>
       </div>
@@ -58,22 +64,28 @@
         <label>Dificultad</label>
         <select name="difficulty">
           <% ['facil','media','dificil'].forEach(d => { %>
-            <option value="<%= d %>" <%= question && question.difficulty === d ? 'selected' : '' %>><%= d %></option>
+            <option value="<%= d %>" <%= (formData || question)?.difficulty === d ? 'selected' : '' %>><%= d %></option>
           <% }) %>
         </select>
       </div>
 
       <div>
         <label>Puntos</label>
-        <input type="number" name="points_value" value="<%= question ? question.points_value : 10 %>" min="1" required>
+        <input type="number" name="points_value" value="<%= (formData || question)?.points_value || 10 %>" min="1" max="1000" required>
+      </div>
+
+      <div class="full">
+        <label for="sourceUrl">Fuente verificable</label>
+        <input type="url" name="source_url" id="sourceUrl" maxlength="1000" placeholder="https://..." value="<%= (formData || question)?.source_url || '' %>">
+        <small class="field-help">Revisá la respuesta en una fuente confiable. Es obligatorio agregar el enlace para publicar.</small>
       </div>
 
       <div class="full image-field">
         <label>Imagen de fondo (opcional)</label>
         <input class="image-file-input" type="file" name="image_file" id="imageFile" accept="image/png,image/jpeg,image/webp,image/gif">
-        <input type="hidden" name="image_url" id="imageUrl" value="<%= question && question.image_url ? question.image_url : '' %>">
+        <input type="hidden" name="image_url" id="imageUrl" value="<%= (formData || question)?.image_url || '' %>">
 
-        <div class="image-preview" id="imagePreview" <%= question && question.image_url ? `style="background-image:url('${question.image_url}')"` : '' %>></div>
+        <div class="image-preview" id="imagePreview" <%= (formData || question)?.image_url ? `style="background-image:url('${(formData || question).image_url}')"` : '' %>></div>
 
         <div class="image-actions">
           <label class="image-action image-action-upload" for="imageFile">Cambiar foto</label>
@@ -88,8 +100,8 @@
         <div>
           <label>Estado</label>
           <select name="active">
-            <option value="1" <%= question.active ? 'selected' : '' %>>Activa</option>
-            <option value="0" <%= !question.active ? 'selected' : '' %>>Inactiva</option>
+            <option value="1" <%= String((formData || question).active) === '1' ? 'selected' : '' %>>Activa</option>
+            <option value="0" <%= String((formData || question).active) !== '1' ? 'selected' : '' %>>Inactiva</option>
           </select>
         </div>
       <% } %>

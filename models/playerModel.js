@@ -2,8 +2,8 @@ const db = require("../database/db");
 
 const NICKNAME_RE = /^[a-zA-Z0-9_ñÑáéíóúÁÉÍÓÚ]{3,20}$/;
 
-async function findById(id) {
-    const [rows] = await db.query("SELECT * FROM players WHERE id = ?", [id]);
+async function findById(id, connection = db) {
+    const [rows] = await connection.query("SELECT * FROM players WHERE id = ?", [id]);
     return rows[0] || null;
 }
 
@@ -22,12 +22,12 @@ async function findByPhone(phone) {
     return rows[0] || null;
 }
 
-async function create(nickname, deviceToken, passwordHash, email = null, phone = null) {
-    const [result] = await db.query(
+async function create(nickname, deviceToken, passwordHash, email = null, phone = null, connection = db) {
+    const [result] = await connection.query(
         "INSERT INTO players (nickname, device_token, password_hash, email, phone) VALUES (?, ?, ?, ?, ?)",
         [nickname, deviceToken, passwordHash, email, phone]
     );
-    return findById(result.insertId);
+    return findById(result.insertId, connection);
 }
 
 async function updateAvatar(playerId, avatarData) {
