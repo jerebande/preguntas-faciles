@@ -63,7 +63,7 @@ async function register(req, res, next) {
             ));
             if (result.limited) {
                 return res.status(429).json({
-                    error: "Desde esta dirección IP ya se alcanzó el máximo de 4 cuentas."
+                    error: "Desde esta dirección IP ya se crearon 4 cuentas en las últimas 24 horas. Probá de nuevo más tarde."
                 });
             }
             player = result.player;

@@ -1,6 +1,6 @@
 const db = require("../database/db");
 
-const MAX_ACCOUNTS_PER_IP = 4;
+const MAX_ACCOUNTS_PER_IP_PER_DAY = 4;
 
 async function ensureTable() {
     await db.query(
@@ -33,10 +33,11 @@ async function createWithinLimit(ipHash, createPlayer) {
         const [[{ total }]] = await connection.query(
             `SELECT COUNT(*) AS total
              FROM registration_events
-             WHERE ip_hash = ?`,
+             WHERE ip_hash = ?
+               AND created_at >= NOW() - INTERVAL 24 HOUR`,
             [ipHash]
         );
-        if (Number(total) >= MAX_ACCOUNTS_PER_IP) {
+        if (Number(total) >= MAX_ACCOUNTS_PER_IP_PER_DAY) {
             await connection.rollback();
             transactionStarted = false;
             return { limited: true };

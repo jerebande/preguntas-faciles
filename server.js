@@ -24,7 +24,7 @@ if (process.env.NODE_ENV === "production" && (!process.env.SESSION_SECRET || pro
     throw new Error("En producción SESSION_SECRET debe tener al menos 32 caracteres.");
 }
 if (process.env.NODE_ENV === "production" && (!process.env.ABUSE_HASH_SECRET || process.env.ABUSE_HASH_SECRET.length < 32)) {
-    throw new Error("En producción ABUSE_HASH_SECRET debe tener al menos 32 caracteres y mantenerse estable para conservar el límite de cuentas por IP.");
+    throw new Error("En producción ABUSE_HASH_SECRET debe tener al menos 32 caracteres y mantenerse estable para conservar el límite temporal de registros por IP.");
 }
 
 app.disable("x-powered-by");
