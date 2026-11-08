@@ -135,10 +135,10 @@ de negocio.
   producción. El servidor ya no crea el administrador con credenciales predecibles.
 - Mantener `TRUST_PROXY=0` salvo que la aplicación esté detrás de un proxy inverso
   confiable. Si está detrás de Nginx, Cloudflare o similar, configurar `TRUST_PROXY=1`
-  para que las cookies seguras y el límite de intentos de autenticación por IP funcionen
-  correctamente.
-- La aplicación agrega cabeceras HTTP de seguridad y el login admin/jugador tiene un
-  límite de solicitudes por IP para dificultar ataques de fuerza bruta.
+  para que las cookies seguras y los límites basados en IP funcionen correctamente.
+- La aplicación agrega cabeceras HTTP de seguridad y limita los intentos de autenticación
+  por IP y nickname para dificultar ataques de fuerza bruta sin bloquear a otros jugadores
+  que comparten la conexión.
 - Las operaciones POST del panel de administración usan tokens CSRF y el ID de sesión se
   regenera al iniciar sesión.
 - Poner la aplicación detrás de un WAF/firewall como Cloudflare: permitir solo HTTP/HTTPS,
@@ -147,8 +147,9 @@ de negocio.
   CAPTCHA debe verificarse en el servidor con la API del proveedor; ocultarlo solo en el
   navegador no protege la aplicación.
 - Cambiar la contraseña del admin inicial apenas entren por primera vez.
-- El registro de cuentas no tiene un límite compartido por dirección IP, para evitar
-  bloquear a personas que usan la misma conexión. El login y el acceso de administrador
-  sí conservan un límite de intentos por IP contra ataques de fuerza bruta.
+- El registro limita a cuatro cuentas por dirección IP en una ventana de 24 horas. Las
+  personas que comparten una IP comparten este cupo de registros. Se conserva una huella
+  HMAC de la IP, no la IP en claro; mantener `ABUSE_HASH_SECRET` estable para no reiniciar
+  el límite al cambiar la clave.
 - Servir la app detrás de HTTPS (Hostinger, Railway, Render, etc.) antes de lanzarla
   públicamente, para que las cookies de sesión viajen seguras.

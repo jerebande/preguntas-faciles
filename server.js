@@ -10,6 +10,7 @@ const answerLogModel = require("./models/answerLogModel");
 const questionModel = require("./models/questionModel");
 const settingsModel = require("./models/settingsModel");
 const seasonWinnerModel = require("./models/seasonWinnerModel");
+const registrationModel = require("./models/registrationModel");
 const weeklyQuestionModel = require("./models/weeklyQuestionModel");
 const { loadPlayer } = require("./middleware/player");
 
@@ -21,6 +22,9 @@ const app = express();
 
 if (process.env.NODE_ENV === "production" && (!process.env.SESSION_SECRET || process.env.SESSION_SECRET.length < 32)) {
     throw new Error("En producción SESSION_SECRET debe tener al menos 32 caracteres.");
+}
+if (process.env.NODE_ENV === "production" && (!process.env.ABUSE_HASH_SECRET || process.env.ABUSE_HASH_SECRET.length < 32)) {
+    throw new Error("En producción ABUSE_HASH_SECRET debe tener al menos 32 caracteres y mantenerse estable para conservar el límite temporal de registros por IP.");
 }
 
 app.disable("x-powered-by");
@@ -116,6 +120,7 @@ ensureAdmin()
     .then(() => playerModel.ensureAvatarColumn())
     .then(() => playerModel.ensurePasswordColumn())
     .then(() => playerModel.ensureContactColumns())
+    .then(() => registrationModel.ensureTable())
     .then(() => answerLogModel.ensureSelectedOptionNullable())
     .then(() => answerLogModel.ensureResponseTimeColumn())
     .then(() => answerLogModel.ensureWeeklyRoundColumn())
