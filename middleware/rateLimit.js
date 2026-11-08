@@ -3,7 +3,11 @@ const WINDOW_MS = 15 * 60 * 1000;
 const MAX_ATTEMPTS = 10;
 
 function getKey(req) {
-    return req.ip || req.socket.remoteAddress || "unknown";
+    const ip = req.ip || req.socket.remoteAddress || "unknown";
+    const nickname = typeof req.body?.nickname === "string"
+        ? req.body.nickname.trim().toLowerCase()
+        : "";
+    return `${ip}:${nickname}`;
 }
 
 function authLimiter(req, res, next) {

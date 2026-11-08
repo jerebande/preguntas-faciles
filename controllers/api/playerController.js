@@ -1,7 +1,6 @@
 const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
 const playerModel = require("../../models/playerModel");
-const registrationModel = require("../../models/registrationModel");
 const seasonModel = require("../../models/seasonModel");
 const scoreModel = require("../../models/scoreModel");
 const captchaService = require("../../services/captchaService");
@@ -54,19 +53,13 @@ async function register(req, res, next) {
         const passwordHash = await bcrypt.hash(password, 10);
         let player;
         try {
-            const hashSecret = process.env.ABUSE_HASH_SECRET || process.env.SESSION_SECRET || "dev-secret-cambiame";
-            const ipHash = crypto.createHmac("sha256", hashSecret)
-                .update(req.ip || req.socket.remoteAddress || "unknown")
-                .digest("hex");
-            const result = await registrationModel.createWithinLimit(ipHash, (connection) => (
-                playerModel.create(nickname, deviceToken, passwordHash, normalizedEmail, normalizedPhone, connection)
-            ));
-            if (result.limited) {
-                return res.status(429).json({
-                    error: "Desde esta dirección IP ya se crearon 4 cuentas en las últimas 24 horas. Probá de nuevo más tarde."
-                });
-            }
-            player = result.player;
+            player = await playerModel.create(
+                nickname,
+                deviceToken,
+                passwordHash,
+                normalizedEmail,
+                normalizedPhone
+            );
         } catch (err) {
             if (err.code === "ER_DUP_ENTRY") {
                 return res.status(409).json({ error: "Ese nickname, email o teléfono ya está registrado." });
