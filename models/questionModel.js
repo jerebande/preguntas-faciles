@@ -9,34 +9,9 @@ async function findAllWithCategory() {
     return rows;
 }
 
-async function ensureSourceUrlColumn() {
-    const [[column]] = await db.query(
-        `SELECT COUNT(*) AS total
-         FROM information_schema.columns
-         WHERE table_schema = DATABASE()
-           AND table_name = 'questions'
-           AND column_name = 'source_url'`
-    );
-    if (!column.total) {
-        await db.query("ALTER TABLE questions ADD COLUMN source_url VARCHAR(1000) NULL AFTER image_url");
-    }
-}
-
 async function findById(id) {
     const [rows] = await db.query("SELECT * FROM questions WHERE id = ?", [id]);
     return rows[0] || null;
-}
-
-function normalizeSourceUrl(value) {
-    if (!value) return null;
-    const normalized = String(value).trim();
-    try {
-        const url = new URL(normalized);
-        if (!["http:", "https:"].includes(url.protocol)) return null;
-        return url.toString().slice(0, 1000);
-    } catch (error) {
-        return null;
-    }
 }
 
 async function findActiveById(id) {
@@ -82,21 +57,21 @@ async function countActive() {
 }
 
 async function create(data) {
-    const { category_id, question_text, option_a, option_b, option_c, option_d, correct_option, difficulty, points_value, image_url, source_url } = data;
+    const { category_id, question_text, option_a, option_b, option_c, option_d, correct_option, difficulty, points_value, image_url } = data;
     const [result] = await db.query(
-        `INSERT INTO questions (category_id, question_text, option_a, option_b, option_c, option_d, correct_option, difficulty, points_value, image_url, source_url, active)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
-        [category_id || null, question_text, option_a, option_b, option_c, option_d, correct_option, difficulty, points_value || 10, normalizeImageUrl(image_url), normalizeSourceUrl(source_url)]
+        `INSERT INTO questions (category_id, question_text, option_a, option_b, option_c, option_d, correct_option, difficulty, points_value, image_url, active)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+        [category_id || null, question_text, option_a, option_b, option_c, option_d, correct_option, difficulty, points_value || 10, normalizeImageUrl(image_url)]
     );
     return findById(result.insertId);
 }
 
 async function update(id, data) {
-    const { category_id, question_text, option_a, option_b, option_c, option_d, correct_option, difficulty, points_value, image_url, source_url, active } = data;
+    const { category_id, question_text, option_a, option_b, option_c, option_d, correct_option, difficulty, points_value, image_url, active } = data;
     await db.query(
         `UPDATE questions SET category_id=?, question_text=?, option_a=?, option_b=?, option_c=?, option_d=?,
-         correct_option=?, difficulty=?, points_value=?, image_url=?, source_url=?, active=? WHERE id=?`,
-        [category_id || null, question_text, option_a, option_b, option_c, option_d, correct_option, difficulty, points_value || 10, normalizeImageUrl(image_url), normalizeSourceUrl(source_url), active === "1" || active === 1 || active === true ? 1 : 0, id]
+         correct_option=?, difficulty=?, points_value=?, image_url=?, active=? WHERE id=?`,
+        [category_id || null, question_text, option_a, option_b, option_c, option_d, correct_option, difficulty, points_value || 10, normalizeImageUrl(image_url), active === "1" || active === 1 || active === true ? 1 : 0, id]
     );
     return findById(id);
 }
@@ -110,7 +85,6 @@ async function toggleActive(id) {
     const question = await findById(id);
     if (!question) return false;
     const shouldActivate = Number(question.active) === 0;
-    if (shouldActivate && !normalizeSourceUrl(question.source_url)) return false;
     await db.query("UPDATE questions SET active = ? WHERE id = ?", [shouldActivate ? 1 : 0, id]);
     return true;
 }
@@ -161,15 +135,22 @@ async function countDrafts() {
     return total;
 }
 
+async function hasRecentQuestion() {
+    const [[{ total }]] = await db.query(
+        "SELECT COUNT(*) AS total FROM questions WHERE created_at >= NOW() - INTERVAL 7 DAY"
+    );
+    return Number(total) > 0;
+}
+
 module.exports = {
     findAllWithCategory,
     findById,
     findActiveById,
     ensureImageUrlColumn,
-    ensureSourceUrlColumn,
     findNextUnanswered,
     countActive,
     countDrafts,
+    hasRecentQuestion,
     create,
     createManyAsDraft,
     update,

@@ -12,6 +12,7 @@ const settingsModel = require("./models/settingsModel");
 const seasonWinnerModel = require("./models/seasonWinnerModel");
 const registrationModel = require("./models/registrationModel");
 const weeklyQuestionModel = require("./models/weeklyQuestionModel");
+const automaticQuestionService = require("./services/automaticQuestionService");
 const { loadPlayer } = require("./middleware/player");
 
 const gameRoutes = require("./routes/game");
@@ -126,11 +127,13 @@ ensureAdmin()
     .then(() => answerLogModel.ensureWeeklyRoundColumn())
     .then(() => weeklyQuestionModel.ensureTable())
     .then(() => questionModel.ensureImageUrlColumn())
-    .then(() => questionModel.ensureSourceUrlColumn())
     .then(() => settingsModel.ensureTable())
     .then(() => seasonWinnerModel.ensureTable())
     .then(() => {
-        const server = app.listen(PORT, () => console.log(`preguntas.faciles corriendo en http://localhost:${PORT}`));
+        const server = app.listen(PORT, () => {
+            console.log(`preguntas.faciles corriendo en http://localhost:${PORT}`);
+            automaticQuestionService.start();
+        });
         server.on("error", (err) => {
             if (err.code === "EADDRINUSE") {
                 console.error(`El puerto ${PORT} ya está en uso. El servidor probablemente ya está corriendo en http://localhost:${PORT}`);

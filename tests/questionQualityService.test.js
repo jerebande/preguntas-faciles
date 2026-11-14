@@ -10,19 +10,17 @@ const validQuestion = {
     option_d: "Lisboa",
     correct_option: "b",
     difficulty: "facil",
-    points_value: 10,
-    source_url: "https://example.com/fuente"
+    points_value: 10
 };
 
-test("question validation catches duplicate options and requires a verifiable source for publication", () => {
-    const result = validateQuestion({
-        ...validQuestion,
-        option_d: " PARÍS ",
-        source_url: ""
-    }, { requireSource: true });
+test("question validation catches duplicate options", () => {
+    const result = validateQuestion({ ...validQuestion, option_d: " PARÍS " });
 
     assert.ok(result.errors.some((error) => error.includes("distintas")));
-    assert.ok(result.errors.some((error) => error.includes("fuente verificable")));
+});
+
+test("a question can be published without a source URL", () => {
+    assert.deepEqual(validateQuestion(validQuestion).errors, []);
 });
 
 test("generated questions with invalid options or duplicate wording are discarded", () => {

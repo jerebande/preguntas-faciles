@@ -22,10 +22,6 @@
       <div><strong><%= questions.filter(q => !q.active).length %></strong><span>Para revisar</span></div>
     </section>
 
-    <% if (query.error === 'source') { %>
-      <p class="question-review-alert" role="alert">Antes de publicar una pregunta, agregá una fuente verificable desde Editar.</p>
-    <% } %>
-
     <section class="question-bulk-actions" aria-label="Estado global de preguntas">
       <span>Si desactivás todo, cada pregunta deberá revisarse y publicarse individualmente.</span>
       <form method="POST" action="/admin/questions/set-active" onsubmit="return confirm('¿Desactivar todas las preguntas? Ninguna aparecerá en el juego.');">
@@ -52,11 +48,6 @@
               <td class="question-cell" data-label="Pregunta">
                 <strong><%= q.question_text %></strong>
                 <small><%= q.points_value %> puntos · #<%= q.id %></small>
-                <% if (q.source_url) { %>
-                  <small><a href="<%= q.source_url %>" target="_blank" rel="noopener noreferrer">Ver fuente</a></small>
-                <% } else { %>
-                  <small class="question-source-missing">Falta fuente verificable</small>
-                <% } %>
               </td>
               <td data-label="Categoría"><%= q.category_name || 'Sin categoría' %></td>
               <td data-label="Dificultad"><span class="difficulty difficulty-<%= q.difficulty %>"><%= q.difficulty %></span></td>

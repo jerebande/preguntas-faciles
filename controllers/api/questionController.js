@@ -133,7 +133,7 @@ async function getRandomQuestion(req, res, next) {
                 gameComplete: false,
                 weeklyComplete: true,
                 nextMondayAt: weeklyRound.nextMondayAt,
-                message: "Ya respondiste todas las preguntas disponibles. Agregaremos más pronto."
+                message: "No quedan preguntas nuevas disponibles. Volvé más tarde."
             });
         }
 

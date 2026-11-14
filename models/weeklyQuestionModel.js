@@ -41,7 +41,16 @@ async function ensureForWeek(weekStart) {
         );
         if (!existing.length) {
             const [questions] = await connection.query(
-                "SELECT id FROM questions WHERE active = 1 ORDER BY RAND() LIMIT 10"
+                `SELECT q.id
+                 FROM questions q
+                 WHERE q.active = 1
+                   AND NOT EXISTS (
+                       SELECT 1
+                       FROM weekly_questions previous
+                       WHERE previous.question_id = q.id
+                   )
+                 ORDER BY RAND()
+                 LIMIT 10`
             );
             for (let index = 0; index < questions.length; index += 1) {
                 await connection.query(

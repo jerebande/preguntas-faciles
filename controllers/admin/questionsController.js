@@ -5,7 +5,7 @@ const { validateQuestion } = require("../../services/questionQualityService");
 async function list(req, res, next) {
     try {
         const questions = await questionModel.findAllWithCategory();
-        res.render("admin/questions", { admin: { username: req.session.adminUsername }, questions, query: req.query });
+        res.render("admin/questions", { admin: { username: req.session.adminUsername }, questions });
     } catch (err) {
         next(err);
     }
@@ -30,8 +30,7 @@ async function create(req, res, next) {
     try {
         const data = {
             ...req.body,
-            image_url: req.file ? `/uploads/questions/${req.file.filename}` : req.body.image_url,
-            source_url: req.body.source_url
+            image_url: req.file ? `/uploads/questions/${req.file.filename}` : req.body.image_url
         };
         data.correct_option = String(data.correct_option || "").toLowerCase();
         const validation = validateQuestion(data);
@@ -45,7 +44,6 @@ async function create(req, res, next) {
                 errors: validation.errors
             });
         }
-        data.source_url = validation.sourceUrl;
         await questionModel.create(data);
         res.redirect("/admin/questions");
     } catch (err) {
@@ -80,11 +78,10 @@ async function update(req, res, next) {
             image_url: req.file
                 ? `/uploads/questions/${req.file.filename}`
                 : (req.body.image_url || currentQuestion.image_url || null),
-            source_url: req.body.source_url,
             active: req.body.active
         };
         data.correct_option = String(data.correct_option || "").toLowerCase();
-        const validation = validateQuestion(data, { requireSource: data.active === "1" });
+        const validation = validateQuestion(data);
         if (validation.errors.length) {
             const categories = await categoryModel.findAllActive();
             return res.status(400).render("admin/question-form", {
@@ -95,7 +92,6 @@ async function update(req, res, next) {
                 errors: validation.errors
             });
         }
-        data.source_url = validation.sourceUrl;
         await questionModel.update(req.params.id, data);
         res.redirect("/admin/questions");
     } catch (err) {
@@ -115,7 +111,7 @@ async function remove(req, res, next) {
 async function toggleActive(req, res, next) {
     try {
         const toggled = await questionModel.toggleActive(req.params.id);
-        if (!toggled) return res.redirect("/admin/questions?error=source");
+        if (!toggled) return res.redirect("/admin/questions");
         res.redirect("/admin/questions");
     } catch (err) {
         next(err);

@@ -74,12 +74,6 @@
         <input type="number" name="points_value" value="<%= (formData || question)?.points_value || 10 %>" min="1" max="1000" required>
       </div>
 
-      <div class="full">
-        <label for="sourceUrl">Fuente verificable</label>
-        <input type="url" name="source_url" id="sourceUrl" maxlength="1000" placeholder="https://..." value="<%= (formData || question)?.source_url || '' %>">
-        <small class="field-help">Revisá la respuesta en una fuente confiable. Es obligatorio agregar el enlace para publicar.</small>
-      </div>
-
       <div class="full image-field">
         <label>Imagen de fondo (opcional)</label>
         <input class="image-file-input" type="file" name="image_file" id="imageFile" accept="image/png,image/jpeg,image/webp,image/gif">

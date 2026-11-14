@@ -68,9 +68,10 @@ segunda base ni un sistema paralelo.
 - **A mano:** `/admin/questions/new`, como siempre.
 - **Con IA:** `/admin/questions/generate-ai` — el admin pone un tema, cantidad y
   dificultad, y Groq propone preguntas. Se guardan automáticamente como
-  **inactivas** (borrador). Antes de publicar cada una, revisá la redacción y la
-  respuesta correcta contra una fuente confiable y agregá el enlace en el formulario
-  de edición. La IA puede equivocarse; sus borradores no aparecen en el juego.
+  **inactivas** (borrador). Antes de publicarlas, revisá la redacción y la respuesta
+  correcta. La IA puede equivocarse; sus borradores no aparecen en el juego.
+- Si pasa una semana sin que se creen preguntas, la IA genera automáticamente una
+  tanda de preguntas de cultura general, que queda como borrador para revisión.
 - Para usar esta función necesitás una API key de Groq en `.env`
   (`GROQ_API_KEY`). Si no la configurás, el resto de la app funciona igual —
   solo ese botón va a mostrar un error pidiendo la key.

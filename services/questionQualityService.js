@@ -10,7 +10,7 @@ function normalizeText(value) {
         .trim();
 }
 
-function validateQuestion(question, { requireSource = false } = {}) {
+function validateQuestion(question) {
     const errors = [];
     const text = typeof question.question_text === "string" ? question.question_text.trim() : "";
 
@@ -40,27 +40,7 @@ function validateQuestion(question, { requireSource = false } = {}) {
         errors.push("Los puntos deben ser un número entero entre 1 y 1000.");
     }
 
-    const sourceUrl = normalizeSourceUrl(question.source_url);
-    if (question.source_url && !sourceUrl) {
-        errors.push("La fuente debe ser una URL HTTP o HTTPS válida.");
-    }
-    if (requireSource && !sourceUrl) {
-        errors.push("Agregá una fuente verificable antes de publicar la pregunta.");
-    }
-
-    return { errors, sourceUrl };
-}
-
-function normalizeSourceUrl(value) {
-    if (typeof value !== "string" || !value.trim()) return null;
-    if (value.trim().length > 1000) return null;
-    try {
-        const url = new URL(value.trim());
-        if (!["http:", "https:"].includes(url.protocol)) return null;
-        return url.toString().slice(0, 1000);
-    } catch (error) {
-        return null;
-    }
+    return { errors };
 }
 
 function filterGeneratedQuestions(questions) {
@@ -86,4 +66,4 @@ function filterGeneratedQuestions(questions) {
     return accepted;
 }
 
-module.exports = { filterGeneratedQuestions, normalizeSourceUrl, validateQuestion };
+module.exports = { filterGeneratedQuestions, validateQuestion };
