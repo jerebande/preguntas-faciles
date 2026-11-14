@@ -120,10 +120,10 @@ async function toggleActive(req, res, next) {
 
 async function setAllActive(req, res, next) {
     try {
-        if (req.body.active === "1") {
-            return res.status(400).send("Las preguntas deben revisarse y publicarse individualmente.");
+        if (req.body.active !== "0" && req.body.active !== "1") {
+            return res.status(400).send("El estado seleccionado no es válido.");
         }
-        await questionModel.setAllActive(false);
+        await questionModel.setAllActive(req.body.active === "1");
         res.redirect("/admin/questions");
     } catch (err) {
         next(err);

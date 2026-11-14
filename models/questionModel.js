@@ -90,9 +90,6 @@ async function toggleActive(id) {
 }
 
 async function setAllActive(active) {
-    if (active) {
-        throw new Error("Las preguntas deben revisarse y publicarse individualmente.");
-    }
     await db.query("UPDATE questions SET active = ?", [active ? 1 : 0]);
 }
 

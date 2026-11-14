@@ -2308,16 +2308,6 @@ img.mark {
   margin: 12px 0 0;
 }
 
-.weekly-round-note strong {
-  color: var(--black);
-  font-weight: 700;
-}
-
-.game-weekly-note {
-  margin: 0 4px 12px;
-  text-align: center;
-}
-
 .question-review-alert {
   background: #fff3d4;
   border: 1px solid rgba(154, 98, 0, .28);

@@ -29,10 +29,6 @@
 
     <% if (practiceMode) { %>
       <p class="practice-notice">Modo de prueba: tus respuestas y puntos no se guardan ni afectan el ranking o las estadísticas.</p>
-    <% } else { %>
-      <p class="weekly-round-note game-weekly-note" data-weekly-reset="<%= weeklyRound.nextMondayAt %>">
-        Tanda semanal · vuelve el lunes en <strong data-weekly-countdown></strong>
-      </p>
     <% } %>
     <section id="gameShell">
       <div class="score-strip">

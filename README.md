@@ -81,7 +81,7 @@ segunda base ni un sistema paralelo.
 - El jugador crea una cuenta con nickname y contraseña; la sesión puede durar hasta 90 días.
 - Cada lunes a las 00:00 de Argentina comienza una tanda nueva de hasta 10 preguntas.
   Todos reciben las mismas preguntas en el mismo orden y pueden responder cada una una
-  sola vez durante esa semana. El sitio muestra una cuenta regresiva hasta el lunes.
+  sola vez durante esa semana.
 - Los puntos de cada tanda se acumulan en el ranking anual. Las respuestas semanales
   quedan registradas y las preguntas pueden volver a aparecer en semanas posteriores.
 - El ranking se mantiene unificado hasta el 31 de diciembre de cada año; el 1 de enero

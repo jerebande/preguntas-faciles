@@ -20,7 +20,6 @@ let gameAudioContext = null;
 let activeQuestionId = null;
 let questionResolved = false;
 let resultSoundStopTimer = null;
-setInterval(updateWeeklyCountdowns, 1000);
 const incorrectSound = new Audio('/audio/incorrecto.mp4');
 const resultSounds = {
   correct: new Audio('/audio/correcto.mp4'),
@@ -29,7 +28,6 @@ const resultSounds = {
 };
 setupAvatarPicker();
 setupProfile();
-updateWeeklyCountdowns();
 
 let authMode = 'login';
 
@@ -331,9 +329,6 @@ async function loadQuestion() {
     const avgTimeHtml = (!practiceMode && data.gameComplete && data.avgResponseTimeMs != null)
       ? `<p class="avg-time-result">Tiempo promedio de respuesta: ${(data.avgResponseTimeMs / 1000).toFixed(1)}s</p>`
       : '';
-    const weeklyCountdownHtml = (!practiceMode && data.weeklyComplete && Number.isFinite(Number(data.nextMondayAt)))
-      ? `<div class="weekly-round-note" data-weekly-reset="${Number(data.nextMondayAt)}">Nueva tanda el lunes · vuelve en <strong data-weekly-countdown></strong></div>`
-      : '';
     const rankingHtml = (!practiceMode && data.gameComplete)
       ? `<p class="rank-result">${data.rankingPosition
         ? `Terminaste en el puesto <strong>#${escapeHtml(String(data.rankingPosition))}</strong> del ranking.`
@@ -348,12 +343,10 @@ async function loadQuestion() {
             <p>${escapeHtml(data.message)}</p>
           ${avgTimeHtml}
           ${rankingHtml}
-            ${weeklyCountdownHtml}
             ${data.gameComplete && !data.weeklyComplete ? `<button type="button" class="btn btn-primary play-again-btn" id="playAgain"><span aria-hidden="true">▶</span> ${practiceMode ? 'Repetir prueba' : 'Jugar'}</button>` : ''}
             ${practiceExitHtml}
         </div>
       </div>`;
-      updateWeeklyCountdowns();
     const playAgain = document.getElementById('playAgain');
     if (playAgain) playAgain.addEventListener('click', startNewGame);
     return;
@@ -528,20 +521,4 @@ function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
-}
-
-function updateWeeklyCountdowns() {
-  document.querySelectorAll('[data-weekly-countdown]').forEach(label => {
-    const resetAt = Number(label.parentElement?.dataset.weeklyReset);
-    if (!Number.isFinite(resetAt)) return;
-
-    const remainingSeconds = Math.max(0, Math.ceil((resetAt - Date.now()) / 1000));
-    const days = Math.floor(remainingSeconds / 86400);
-    const hours = Math.floor((remainingSeconds % 86400) / 3600);
-    const minutes = Math.floor((remainingSeconds % 3600) / 60);
-    const seconds = remainingSeconds % 60;
-    if (days) label.textContent = `${days} días, ${hours} h ${minutes} min`;
-    else if (hours) label.textContent = `${hours} h ${minutes} min`;
-    else label.textContent = `${minutes} min ${seconds} s`;
-  });
 }

@@ -2,11 +2,10 @@ const seasonModel = require("../models/seasonModel");
 const scoreModel = require("../models/scoreModel");
 const seasonWinnerModel = require("../models/seasonWinnerModel");
 const answerLogModel = require("../models/answerLogModel");
-const { getWeeklyRound } = require("../services/weeklyRoundService");
 
 async function showHome(req, res, next) {
     try {
-        res.render("index", { player: req.player, weeklyRound: getWeeklyRound() });
+        res.render("index", { player: req.player });
     } catch (err) {
         next(err);
     }
@@ -15,7 +14,7 @@ async function showHome(req, res, next) {
 async function showGame(req, res, next) {
     try {
         if (!req.player) return res.redirect("/");
-        res.render("game", { player: req.player, practiceMode: false, weeklyRound: getWeeklyRound() });
+        res.render("game", { player: req.player, practiceMode: false });
     } catch (err) {
         next(err);
     }
@@ -23,7 +22,7 @@ async function showGame(req, res, next) {
 
 function showPractice(req, res, next) {
     try {
-        res.render("game", { player: null, practiceMode: true, weeklyRound: getWeeklyRound() });
+        res.render("game", { player: null, practiceMode: true });
     } catch (err) {
         next(err);
     }

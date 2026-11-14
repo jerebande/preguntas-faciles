@@ -23,7 +23,14 @@
     </section>
 
     <section class="question-bulk-actions" aria-label="Estado global de preguntas">
-      <span>Si desactivás todo, cada pregunta deberá revisarse y publicarse individualmente.</span>
+      <span>Publicá las preguntas pendientes o desactivá todas las preguntas.</span>
+      <% if (questions.some(q => !q.active)) { %>
+        <form method="POST" action="/admin/questions/set-active" onsubmit="return confirm('¿Publicar todas las preguntas pendientes? Aparecerán en el juego.');">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="hidden" name="active" value="1">
+          <button type="submit" class="bulk-action bulk-action-on">Publicar pendientes</button>
+        </form>
+      <% } %>
       <form method="POST" action="/admin/questions/set-active" onsubmit="return confirm('¿Desactivar todas las preguntas? Ninguna aparecerá en el juego.');">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <input type="hidden" name="active" value="0">
